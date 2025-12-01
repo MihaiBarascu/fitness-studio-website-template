@@ -3,7 +3,7 @@ import { slugField } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
-import { revalidateTeamMember, revalidateDelete } from './hooks/revalidateTeamMember'
+import { revalidateAntrenor, revalidateDelete } from './hooks/revalidateAntrenor'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
 import {
   MetaDescriptionField,
@@ -11,11 +11,14 @@ import {
   MetaTitleField,
 } from '@payloadcms/plugin-seo/fields'
 
-export const TeamMembers: CollectionConfig<'team-members'> = {
-  slug: 'team-members',
+export const Antrenori: CollectionConfig<'antrenori'> = {
+  slug: 'antrenori',
   labels: {
-    singular: 'Membru Echipă',
-    plural: 'Membri Echipă',
+    singular: 'Antrenor',
+    plural: 'Antrenori',
+  },
+  typescript: {
+    interface: 'Antrenor',
   },
   defaultPopulate: {
     title: true,
@@ -30,14 +33,14 @@ export const TeamMembers: CollectionConfig<'team-members'> = {
       url: ({ data, req }) =>
         generatePreviewPath({
           slug: data?.slug,
-          collection: 'team-members',
+          collection: 'antrenori',
           req,
         }),
     },
     preview: (data, { req }) =>
       generatePreviewPath({
         slug: data?.slug as string,
-        collection: 'team-members',
+        collection: 'antrenori',
         req,
       }),
   },
@@ -145,13 +148,13 @@ export const TeamMembers: CollectionConfig<'team-members'> = {
         position: 'sidebar',
       },
     },
-    // SEO for individual member pages
+    // SEO for individual antrenor pages
     {
       name: 'meta',
       type: 'group',
       label: 'SEO',
       admin: {
-        description: 'SEO pentru pagina individuala a membrului',
+        description: 'SEO pentru pagina individuala a antrenorului',
       },
       fields: [
         MetaTitleField({
@@ -165,7 +168,7 @@ export const TeamMembers: CollectionConfig<'team-members'> = {
     },
   ],
   hooks: {
-    afterChange: [revalidateTeamMember],
+    afterChange: [revalidateAntrenor],
     beforeChange: [populatePublishedAt],
     afterDelete: [revalidateDelete],
   },

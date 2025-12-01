@@ -33,7 +33,7 @@ const collections: CollectionSlug[] = [
   // 'media', // REMOVED - don't delete media files from R2
   'pages',
   'posts',
-  'team-members',
+  'antrenori',
   'clase',
   'abonamente',
   'forms',
@@ -262,7 +262,7 @@ export const seed = async ({
     try {
       const imageDoc = blogImageDocs[memberData.imageIndex] || image1Doc
       const member = await payload.create({
-        collection: 'team-members',
+        collection: 'antrenori',
         req,
         depth: 0,
         data: {

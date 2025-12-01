@@ -1,16 +1,16 @@
 'use client'
 
-import type { Media, Page, TeamMember, Clase } from '@/payload-types'
+import type { Media, Page, Antrenor, Clase } from '@/payload-types'
 import { getCollectionUrl } from '@/utilities/getCollectionUrl'
 import React from 'react'
 import { UniversalCard, type CardType, type UniversalCardProps } from '@/components/UniversalCard'
 
-type ReferenceValue = Page | TeamMember | Clase
+type ReferenceValue = Page | Antrenor | Clase
 
 interface CardLink {
   type?: 'reference' | 'custom' | null
   reference?: {
-    relationTo: 'pages' | 'team-members' | 'clase'
+    relationTo: 'pages' | 'antrenori' | 'clase'
     value: ReferenceValue | string | number
   } | null
   url?: string | null

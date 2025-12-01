@@ -72,7 +72,7 @@ export interface Config {
     media: Media;
     categories: Category;
     users: User;
-    'team-members': TeamMember;
+    antrenori: Antrenor;
     clase: Clase;
     abonamente: Abonamente;
     redirects: Redirect;
@@ -97,7 +97,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
-    'team-members': TeamMembersSelect<false> | TeamMembersSelect<true>;
+    antrenori: AntrenoriSelect<false> | AntrenoriSelect<true>;
     clase: ClaseSelect<false> | ClaseSelect<true>;
     abonamente: AbonamenteSelect<false> | AbonamenteSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -206,8 +206,8 @@ export interface Page {
                   value: string | Post;
                 } | null)
               | ({
-                  relationTo: 'team-members';
-                  value: string | TeamMember;
+                  relationTo: 'antrenori';
+                  value: string | Antrenor;
                 } | null)
               | ({
                   relationTo: 'clase';
@@ -280,8 +280,8 @@ export interface Page {
                       value: string | Page;
                     } | null)
                   | ({
-                      relationTo: 'team-members';
-                      value: string | TeamMember;
+                      relationTo: 'antrenori';
+                      value: string | Antrenor;
                     } | null)
                   | ({
                       relationTo: 'clase';
@@ -602,9 +602,9 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "team-members".
+ * via the `definition` "antrenori".
  */
-export interface TeamMember {
+export interface Antrenor {
   id: string;
   title: string;
   /**
@@ -648,7 +648,7 @@ export interface TeamMember {
   };
   publishedAt?: string | null;
   /**
-   * SEO pentru pagina individuala a membrului
+   * SEO pentru pagina individuala a antrenorului
    */
   meta?: {
     title?: string | null;
@@ -691,7 +691,7 @@ export interface Clase {
     };
     [k: string]: unknown;
   } | null;
-  trainer?: (string | null) | TeamMember;
+  trainer?: (string | null) | Antrenor;
   category: 'cardio' | 'strength' | 'flexibility' | 'mind-body' | 'combat' | 'dance';
   difficulty?: ('beginner' | 'intermediate' | 'advanced' | 'all-levels') | null;
   duration: number;
@@ -793,8 +793,8 @@ export interface CallToActionBlock {
                 value: string | Post;
               } | null)
             | ({
-                relationTo: 'team-members';
-                value: string | TeamMember;
+                relationTo: 'antrenori';
+                value: string | Antrenor;
               } | null)
             | ({
                 relationTo: 'clase';
@@ -950,8 +950,8 @@ export interface ContentBlock {
                                 value: string | Page;
                               } | null)
                             | ({
-                                relationTo: 'team-members';
-                                value: string | TeamMember;
+                                relationTo: 'antrenori';
+                                value: string | Antrenor;
                               } | null)
                             | ({
                                 relationTo: 'clase';
@@ -1042,8 +1042,8 @@ export interface ContentBlock {
                 value: string | Post;
               } | null)
             | ({
-                relationTo: 'team-members';
-                value: string | TeamMember;
+                relationTo: 'antrenori';
+                value: string | Antrenor;
               } | null)
             | ({
                 relationTo: 'clase';
@@ -1663,8 +1663,8 @@ export interface PayloadLockedDocument {
         value: string | User;
       } | null)
     | ({
-        relationTo: 'team-members';
-        value: string | TeamMember;
+        relationTo: 'antrenori';
+        value: string | Antrenor;
       } | null)
     | ({
         relationTo: 'clase';
@@ -2376,9 +2376,9 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "team-members_select".
+ * via the `definition` "antrenori_select".
  */
-export interface TeamMembersSelect<T extends boolean = true> {
+export interface AntrenoriSelect<T extends boolean = true> {
   title?: T;
   generateSlug?: T;
   slug?: T;
@@ -2811,8 +2811,8 @@ export interface Header {
                 value: string | Post;
               } | null)
             | ({
-                relationTo: 'team-members';
-                value: string | TeamMember;
+                relationTo: 'antrenori';
+                value: string | Antrenor;
               } | null)
             | ({
                 relationTo: 'clase';
@@ -2837,8 +2837,8 @@ export interface Header {
                 value: string | Post;
               } | null)
             | ({
-                relationTo: 'team-members';
-                value: string | TeamMember;
+                relationTo: 'antrenori';
+                value: string | Antrenor;
               } | null)
             | ({
                 relationTo: 'clase';
@@ -2865,8 +2865,8 @@ export interface Header {
                       value: string | Post;
                     } | null)
                   | ({
-                      relationTo: 'team-members';
-                      value: string | TeamMember;
+                      relationTo: 'antrenori';
+                      value: string | Antrenor;
                     } | null)
                   | ({
                       relationTo: 'clase';
@@ -2928,8 +2928,8 @@ export interface Footer {
                       value: string | Post;
                     } | null)
                   | ({
-                      relationTo: 'team-members';
-                      value: string | TeamMember;
+                      relationTo: 'antrenori';
+                      value: string | Antrenor;
                     } | null)
                   | ({
                       relationTo: 'clase';
@@ -2997,8 +2997,8 @@ export interface Footer {
                   value: string | Post;
                 } | null)
               | ({
-                  relationTo: 'team-members';
-                  value: string | TeamMember;
+                  relationTo: 'antrenori';
+                  value: string | Antrenor;
                 } | null)
               | ({
                   relationTo: 'clase';

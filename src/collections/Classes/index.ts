@@ -79,7 +79,7 @@ export const Classes: CollectionConfig<'clase'> = {
     {
       name: 'trainer',
       type: 'relationship',
-      relationTo: 'team-members',
+      relationTo: 'antrenori',
       label: 'Antrenor',
       hasMany: false,
     },

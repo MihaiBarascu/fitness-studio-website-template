@@ -1,4 +1,4 @@
-import type { Post, TeamMember, ArchiveBlock as ArchiveBlockProps } from '@/payload-types'
+import type { Post, Antrenor, ArchiveBlock as ArchiveBlockProps } from '@/payload-types'
 
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
@@ -30,7 +30,7 @@ export const ArchiveBlock: React.FC<
 
   const limit = limitFromProps || 3
 
-  let items: (Post | TeamMember)[] = []
+  let items: (Post | Antrenor)[] = []
 
   if (populateBy === 'collection') {
     const payload = await getPayload({ config: configPromise })
@@ -57,9 +57,9 @@ export const ArchiveBlock: React.FC<
       })
 
       items = fetchedPosts.docs
-    } else if (relationTo === 'team-members') {
-      const fetchedMembers = await payload.find({
-        collection: 'team-members',
+    } else if (relationTo === 'antrenori') {
+      const fetchedAntrenori = await payload.find({
+        collection: 'antrenori',
         depth: 1,
         limit,
         where: {
@@ -68,13 +68,13 @@ export const ArchiveBlock: React.FC<
         sort: '-createdAt',
       })
 
-      items = fetchedMembers.docs
+      items = fetchedAntrenori.docs
     }
   } else {
     if (selectedDocs?.length) {
       const filteredSelectedItems = selectedDocs.map((item) => {
         if (typeof item.value === 'object') return item.value
-      }) as (Post | TeamMember)[]
+      }) as (Post | Antrenor)[]
 
       items = filteredSelectedItems
     }
@@ -89,7 +89,7 @@ export const ArchiveBlock: React.FC<
       )}
       <CollectionArchive
         items={items}
-        collectionType={(relationTo || 'posts') as 'posts' | 'team-members' | 'clase'}
+        collectionType={(relationTo || 'posts') as 'posts' | 'antrenori' | 'clase'}
         cardType={cardType as CardType | undefined}
         columns={(columns as '2' | '3' | '4') || '3'}
       />

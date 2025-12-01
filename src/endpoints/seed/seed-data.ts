@@ -115,6 +115,7 @@ export const teamMembersData = [
       email: 'alexandru@transilvaniafitness.ro',
       phone: '+40 722 333 444',
     },
+    cta: { label: 'Programează o sesiune', linkType: 'custom' as const, url: '/comanda?tip=antrenor&optiune=Alexandru+Popescu' },
   },
   {
     title: 'Maria Ionescu',
@@ -132,6 +133,7 @@ export const teamMembersData = [
       email: 'maria@transilvaniafitness.ro',
       phone: '+40 733 444 555',
     },
+    cta: { label: 'Programează o sesiune', linkType: 'custom' as const, url: '/comanda?tip=antrenor&optiune=Maria+Ionescu' },
   },
   {
     title: 'Mihai Radu',
@@ -148,6 +150,7 @@ export const teamMembersData = [
       email: 'mihai@transilvaniafitness.ro',
       phone: '+40 744 555 666',
     },
+    cta: { label: 'Programează o sesiune', linkType: 'custom' as const, url: '/comanda?tip=antrenor&optiune=Mihai+Radu' },
   },
 ]
 
@@ -187,6 +190,7 @@ export const classesData = [
       { benefit: 'Îmbunătățește postura' },
     ],
     requirements: 'Saltea de yoga, prosop, sticlă de apă',
+    cta: { label: 'Înscrie-te la clasă', linkType: 'custom' as const, url: '/comanda?tip=clasa&optiune=Yoga+pentru+Începători' },
   },
   {
     title: 'CrossFit Intensiv',
@@ -214,6 +218,7 @@ export const classesData = [
       { benefit: 'Îmbunătățește condiția fizică generală' },
     ],
     requirements: 'Încălțăminte sport, prosop mare, sticlă de apă, mănuși (opțional)',
+    cta: { label: 'Înscrie-te la clasă', linkType: 'custom' as const, url: '/comanda?tip=clasa&optiune=CrossFit+Intensiv' },
   },
   {
     title: 'Pilates Core',
@@ -246,6 +251,7 @@ export const classesData = [
       { benefit: 'Tonifică întregul corp' },
     ],
     requirements: 'Saltea de yoga, îmbrăcăminte confortabilă',
+    cta: { label: 'Înscrie-te la clasă', linkType: 'custom' as const, url: '/comanda?tip=clasa&optiune=Pilates+Core' },
   },
 ]
 
@@ -469,7 +475,7 @@ export const headerNavigation = {
   mainLinks: [
     { label: 'Acasă', url: '/', type: 'custom' as const },
     { label: 'Abonamente', url: '/abonamente', type: 'custom' as const },
-    { label: 'Echipa', url: '/team-members', type: 'custom' as const },
+    { label: 'Antrenori', url: '/antrenori', type: 'custom' as const },
     { label: 'Contact', url: '/contact', type: 'custom' as const },
   ],
 

@@ -7,7 +7,7 @@ export const revalidatePaginiEchipa: GlobalAfterChangeHook = ({ doc, req: { payl
     payload.logger.info(`Revalidating pagini-echipa settings`)
 
     revalidateTag('global_pagini-echipa')
-    revalidatePath('/team-members', 'page')
+    revalidatePath('/antrenori', 'page')
   }
 
   return doc

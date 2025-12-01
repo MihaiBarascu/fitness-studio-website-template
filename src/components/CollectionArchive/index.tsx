@@ -3,18 +3,18 @@
 import { cn } from '@/utilities/ui'
 import React from 'react'
 
-import type { Post, TeamMember, Clase } from '@/payload-types'
+import type { Post, Antrenor, Clase } from '@/payload-types'
 import { UniversalCard, type CardType } from '@/components/UniversalCard'
 import {
   postToCardProps,
-  teamMemberToCardProps,
+  antrenorToCardProps,
   claseToCardProps,
 } from '@/utilities/cardAdapters'
 
 export type Props = {
-  items?: (Post | TeamMember | Clase)[]
+  items?: (Post | Antrenor | Clase)[]
   posts?: Post[] // backwards compatibility
-  collectionType?: 'posts' | 'team-members' | 'clase'
+  collectionType?: 'posts' | 'antrenori' | 'clase'
   cardType?: CardType
   columns?: '2' | '3' | '4'
 }
@@ -52,8 +52,8 @@ export const CollectionArchive: React.FC<Props> = (props) => {
 
             // Convert to card props based on collection type
             switch (collectionType) {
-              case 'team-members':
-                cardProps = teamMemberToCardProps(result as TeamMember, {
+              case 'antrenori':
+                cardProps = antrenorToCardProps(result as Antrenor, {
                   cardType: cardType || 'team',
                   showExperience: true,
                 })

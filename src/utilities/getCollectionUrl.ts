@@ -7,7 +7,7 @@ import type { CollectionSlug } from 'payload'
 export const collectionRoutes: Partial<Record<CollectionSlug, string>> = {
   pages: '',
   posts: '/posts',
-  'team-members': '/team-members',
+  antrenori: '/antrenori',
   clase: '/clase',
   abonamente: '/abonamente',
 }

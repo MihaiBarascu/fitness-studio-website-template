@@ -4,7 +4,7 @@ import { getCollectionUrl } from '@/utilities/getCollectionUrl'
 import Link from 'next/link'
 import React from 'react'
 
-import type { Page, Post, TeamMember, Clase } from '@/payload-types'
+import type { Page, Post, Antrenor, Clase } from '@/payload-types'
 
 type CMSLinkType = {
   appearance?: 'inline' | 'theme-nav' | ButtonProps['variant']
@@ -13,8 +13,8 @@ type CMSLinkType = {
   label?: string | null
   newTab?: boolean | null
   reference?: {
-    relationTo: 'pages' | 'posts' | 'team-members' | 'clase'
-    value: Page | Post | TeamMember | Clase | string | number
+    relationTo: 'pages' | 'posts' | 'antrenori' | 'clase'
+    value: Page | Post | Antrenor | Clase | string | number
   } | null
   size?: ButtonProps['size'] | null
   type?: 'custom' | 'reference' | null

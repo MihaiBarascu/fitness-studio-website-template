@@ -5,7 +5,7 @@
  * to UniversalCard props format.
  */
 
-import type { Post, TeamMember, Clase, Abonamente, Media } from '@/payload-types'
+import type { Post, Antrenor, Clase, Abonamente, Media } from '@/payload-types'
 import type { CardType, UniversalCardProps } from '@/components/UniversalCard'
 
 // Difficulty badge color mapping
@@ -84,35 +84,35 @@ export function postToCardProps(
 }
 
 /**
- * Convert a TeamMember document to UniversalCard props
+ * Convert an Antrenor document to UniversalCard props
  */
-export function teamMemberToCardProps(
-  member: TeamMember,
+export function antrenorToCardProps(
+  antrenor: Antrenor,
   options?: {
     cardType?: CardType
     showExperience?: boolean
   },
 ): UniversalCardProps {
   // Get image
-  const image = member.featuredImage || null
+  const image = antrenor.featuredImage || null
 
   // Badge for experience
   const badge =
-    options?.showExperience && member.experience
-      ? `${member.experience} ani exp.`
+    options?.showExperience && antrenor.experience
+      ? `${antrenor.experience} ani exp.`
       : undefined
 
   return {
     cardType: options?.cardType || 'team',
-    title: member.title,
-    subtitle: member.role,
-    description: member.excerpt || undefined,
+    title: antrenor.title,
+    subtitle: antrenor.role,
+    description: antrenor.excerpt || undefined,
     image,
     badge,
     badgeColor: 'primary',
     cta: {
       label: 'Vezi profil',
-      href: `/team-members/${member.slug}`,
+      href: `/antrenori/${antrenor.slug}`,
       newTab: false,
     },
   }
@@ -258,15 +258,15 @@ export function abonamenteToCardProps(
  * Generic adapter that auto-detects collection type
  */
 export function collectionToCardProps(
-  doc: Post | TeamMember | Clase,
-  collectionType: 'posts' | 'team-members' | 'clase',
+  doc: Post | Antrenor | Clase,
+  collectionType: 'posts' | 'antrenori' | 'clase',
   cardType?: CardType,
 ): UniversalCardProps {
   switch (collectionType) {
     case 'posts':
       return postToCardProps(doc as Post, { cardType })
-    case 'team-members':
-      return teamMemberToCardProps(doc as TeamMember, { cardType })
+    case 'antrenori':
+      return antrenorToCardProps(doc as Antrenor, { cardType })
     case 'clase':
       return claseToCardProps(doc as Clase, { cardType })
     default:
@@ -281,7 +281,7 @@ export function collectionToCardProps(
 
 export default {
   postToCardProps,
-  teamMemberToCardProps,
+  antrenorToCardProps,
   claseToCardProps,
   abonamenteToCardProps,
   collectionToCardProps,

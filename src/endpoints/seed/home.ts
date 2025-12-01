@@ -1,9 +1,9 @@
-import type { Clase, Form, Media, TeamMember } from '@/payload-types'
+import type { Clase, Form, Media, Antrenor } from '@/payload-types'
 import type { RequiredDataFromCollectionSlug } from 'payload'
 
 type HomeArgs = {
   heroImage: Media
-  teamMembers: TeamMember[]
+  teamMembers: Antrenor[]
   classes: Clase[]
   contactForm: Form
 }
@@ -397,7 +397,7 @@ export const home: (args: HomeArgs) => RequiredDataFromCollectionSlug<'pages'> =
                   link: {
                     type: 'reference' as const,
                     reference: {
-                      relationTo: 'team-members' as const,
+                      relationTo: 'antrenori' as const,
                       value: member.id,
                     },
                   },

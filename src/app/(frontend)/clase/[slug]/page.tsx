@@ -18,7 +18,7 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
-import type { Clase as ClassType, TeamMember, PaginiClase } from '@/payload-types'
+import type { Clase as ClassType, Antrenor, PaginiClase } from '@/payload-types'
 import { generateMeta } from '@/utilities/generateMeta'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import { getCollectionUrl, getCollectionListUrl } from '@/utilities/getCollectionUrl'
@@ -96,7 +96,7 @@ export default async function ClassPage({ params: paramsPromise }: Args) {
     : []
 
   // Get trainer details
-  const trainer = classItem.trainer as TeamMember | null
+  const trainer = classItem.trainer as Antrenor | null
 
   // Get the image URL safely
   const imageUrl =
@@ -263,10 +263,10 @@ export default async function ClassPage({ params: paramsPromise }: Args) {
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-8 lg:self-start">
             {/* Schedule Card */}
             {showSchedule && classItem.schedule && classItem.schedule.length > 0 && (
-              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
+              <div className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <Calendar className="w-6 h-6 text-theme-primary" />
                   <h3 className="text-xl font-bold text-theme-dark">Program</h3>
@@ -317,7 +317,7 @@ export default async function ClassPage({ params: paramsPromise }: Args) {
                   )}
                 </div>
                 <Link
-                  href="/contact"
+                  href={`/comanda?tip=clasa&optiune=${encodeURIComponent(classItem.title || '')}`}
                   className="mt-6 w-full block text-center bg-white text-theme-primary font-bold py-3 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   {ctaButtonText}
@@ -330,7 +330,7 @@ export default async function ClassPage({ params: paramsPromise }: Args) {
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-lg font-bold text-theme-dark mb-4">Antrenorul tău</h3>
                 <Link
-                  href={`/team-members/${trainer.slug}`}
+                  href={`/antrenori/${trainer.slug}`}
                   className="block group"
                 >
                   <div className="flex items-center gap-4">

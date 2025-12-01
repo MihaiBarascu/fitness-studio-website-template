@@ -8,7 +8,7 @@ import React from 'react'
 import type { PaginiEchipa } from '@/payload-types'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import { UniversalCard, type CardType } from '@/components/UniversalCard'
-import { teamMemberToCardProps } from '@/utilities/cardAdapters'
+import { antrenorToCardProps } from '@/utilities/cardAdapters'
 
 export const dynamic = 'force-static'
 export const revalidate = 600
@@ -17,15 +17,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = (await getCachedGlobal('pagini-echipa', 1)()) as PaginiEchipa
 
   return {
-    title: settings?.meta?.title || 'Echipa Noastra | Transilvania Fitness',
-    description: settings?.meta?.description || 'Intalneste echipa de profesionisti dedicati de la Transilvania Fitness',
+    title: settings?.meta?.title || 'Antrenori | Transilvania Fitness',
+    description: settings?.meta?.description || 'Cunoaste antrenorii profesionisti de la Transilvania Fitness',
     openGraph: settings?.meta?.image && typeof settings.meta.image === 'object' ? {
       images: [{ url: settings.meta.image.url || '' }],
     } : undefined,
   }
 }
 
-export default async function TeamMembersPage({
+export default async function AntrenoriPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>
@@ -36,8 +36,8 @@ export default async function TeamMembersPage({
   const payload = await getPayload({ config: configPromise })
   const settings = (await getCachedGlobal('pagini-echipa', 1)()) as PaginiEchipa
 
-  const teamMembers = await payload.find({
-    collection: 'team-members',
+  const antrenori = await payload.find({
+    collection: 'antrenori',
     depth: 1,
     limit: 12,
     page: currentPage,
@@ -48,29 +48,29 @@ export default async function TeamMembersPage({
     <div className="pb-16">
       {/* Hero Section */}
       <StaticPageHero
-        title={settings?.heroTitle || 'Echipa Noastra'}
-        description={settings?.heroSubtitle || 'Profesionisti dedicati si pasionati care te vor ghida catre obiectivele tale de fitness'}
+        title={settings?.heroTitle || 'Antrenori'}
+        description={settings?.heroSubtitle || 'Antrenori profesionisti dedicati si pasionati care te vor ghida catre obiectivele tale de fitness'}
         backgroundImage={settings?.heroBackground && typeof settings.heroBackground === 'object' ? settings.heroBackground.url : null}
       />
 
-      {/* Team Members Grid */}
+      {/* Antrenori Grid */}
       <div className="container mt-16">
-        {teamMembers.docs.length > 0 ? (
+        {antrenori.docs.length > 0 ? (
           <>
             <div className={`grid gap-6 mb-12 ${
               settings?.columns === '2' ? 'md:grid-cols-2' :
               settings?.columns === '4' ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' :
               'md:grid-cols-2 lg:grid-cols-3'
             }`}>
-              {teamMembers.docs.map((member, index) => {
+              {antrenori.docs.map((antrenor, index) => {
                 const cardType = (settings?.cardType as CardType) || 'team'
-                const cardProps = teamMemberToCardProps(member, {
+                const cardProps = antrenorToCardProps(antrenor, {
                   cardType,
                   showExperience: settings?.showExperience ?? true,
                 })
                 return (
                   <UniversalCard
-                    key={member.id}
+                    key={antrenor.id}
                     {...cardProps}
                     index={index}
                   />
@@ -79,20 +79,20 @@ export default async function TeamMembersPage({
             </div>
 
             {/* Pagination */}
-            {teamMembers.totalPages > 1 && (
+            {antrenori.totalPages > 1 && (
               <div className="mt-12">
                 <Pagination
-                  page={teamMembers.page || 1}
-                  totalPages={teamMembers.totalPages}
+                  page={antrenori.page || 1}
+                  totalPages={antrenori.totalPages}
                 />
                 <div className="text-center mt-4">
                   <PageRange
-                    totalDocs={teamMembers.totalDocs || 0}
+                    totalDocs={antrenori.totalDocs || 0}
                     limit={12}
                     currentPage={currentPage}
                     collectionLabels={{
-                      plural: 'membri echipă',
-                      singular: 'membru echipă',
+                      plural: 'antrenori',
+                      singular: 'antrenor',
                     }}
                   />
                 </div>
@@ -102,7 +102,7 @@ export default async function TeamMembersPage({
         ) : (
           <div className="text-center py-12">
             <p className="text-xl text-theme-text">
-              Nu există membri ai echipei disponibili momentan.
+              Nu există antrenori disponibili momentan.
             </p>
           </div>
         )}

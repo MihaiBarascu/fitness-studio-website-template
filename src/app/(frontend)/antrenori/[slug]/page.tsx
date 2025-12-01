@@ -9,14 +9,14 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
-import type { TeamMember, PaginiEchipa } from '@/payload-types'
+import type { Antrenor, PaginiEchipa } from '@/payload-types'
 import { generateMeta } from '@/utilities/generateMeta'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
-  const teamMembers = await payload.find({
-    collection: 'team-members',
+  const antrenori = await payload.find({
+    collection: 'antrenori',
     limit: 1000,
     overrideAccess: false,
     pagination: false,
@@ -25,7 +25,7 @@ export async function generateStaticParams() {
     },
   })
 
-  const params = teamMembers.docs.map(({ slug }) => {
+  const params = antrenori.docs.map(({ slug }) => {
     return { slug }
   })
 
@@ -38,12 +38,12 @@ type Args = {
   }>
 }
 
-// Helper function to get other team members
-const getOtherTeamMembers = cache(async (currentId: string, limit: number = 3) => {
+// Helper function to get other antrenori
+const getOtherAntrenori = cache(async (currentId: string, limit: number = 3) => {
   const payload = await getPayload({ config: configPromise })
 
   const result = await payload.find({
-    collection: 'team-members',
+    collection: 'antrenori',
     where: {
       id: { not_equals: currentId },
     },
@@ -51,17 +51,17 @@ const getOtherTeamMembers = cache(async (currentId: string, limit: number = 3) =
     depth: 2,
   })
 
-  return result.docs as TeamMember[]
+  return result.docs as Antrenor[]
 })
 
-export default async function TeamMemberPage({ params: paramsPromise }: Args) {
+export default async function AntrenorPage({ params: paramsPromise }: Args) {
   const { slug = '' } = await paramsPromise
   const decodedSlug = decodeURIComponent(slug)
 
-  const teamMember = await queryTeamMemberBySlug({ slug: decodedSlug })
+  const antrenor = await queryAntrenorBySlug({ slug: decodedSlug })
   const settings = (await getCachedGlobal('pagini-echipa', 1)()) as PaginiEchipa
 
-  if (!teamMember) {
+  if (!antrenor) {
     notFound()
   }
 
@@ -73,22 +73,22 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
   const showCTA = settings?.showCTA ?? true
   const showRelatedMembers = settings?.showRelatedMembers ?? true
   const relatedMembersCount = settings?.relatedMembersCount ?? 3
-  const relatedMembersTitle = settings?.relatedMembersTitle || 'Restul echipei'
+  const relatedMembersTitle = settings?.relatedMembersTitle || 'Alti antrenori'
 
   // CTA texts
-  const firstName = teamMember.title?.split(' ')[0] || ''
+  const firstName = antrenor.title?.split(' ')[0] || ''
   const ctaTitle = (settings?.ctaTitle || 'Vrei sa lucrezi cu {name}?').replace('{name}', firstName)
   const ctaDescription = settings?.ctaDescription || 'Contacteaza-ne pentru a programa o sesiune de antrenament sau pentru mai multe informatii despre serviciile noastre.'
   const ctaButtonText = settings?.ctaButtonText || 'Contacteaza-ne'
   const ctaSecondaryButtonText = settings?.ctaSecondaryButtonText || 'Vezi clasele disponibile'
 
-  // Get other team members for the "Meet the Team" section
-  const otherMembers = showRelatedMembers ? await getOtherTeamMembers(teamMember.id, relatedMembersCount) : []
+  // Get other antrenori for the "Meet the Team" section
+  const otherAntrenori = showRelatedMembers ? await getOtherAntrenori(antrenor.id, relatedMembersCount) : []
 
   // Get the image URL safely
   const imageUrl =
-    teamMember.featuredImage && typeof teamMember.featuredImage === 'object'
-      ? teamMember.featuredImage.url
+    antrenor.featuredImage && typeof antrenor.featuredImage === 'object'
+      ? antrenor.featuredImage.url
       : null
 
   return (
@@ -99,7 +99,7 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
           <ol className="flex items-center space-x-2 text-sm text-gray-500">
             <li>
               <Link href="/" className="hover:text-theme-primary transition-colors">
-                Acasă
+                Acasa
               </Link>
             </li>
             <li>
@@ -107,16 +107,16 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
             </li>
             <li>
               <Link
-                href="/team-members"
+                href="/antrenori"
                 className="hover:text-theme-primary transition-colors"
               >
-                Echipa
+                Antrenori
               </Link>
             </li>
             <li>
               <ChevronRight className="w-4 h-4" />
             </li>
-            <li className="text-theme-dark font-medium">{teamMember.title}</li>
+            <li className="text-theme-dark font-medium">{antrenor.title}</li>
           </ol>
         </nav>
 
@@ -129,7 +129,7 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
                 <div className="relative h-96 lg:h-[450px]">
                   <Image
                     src={imageUrl}
-                    alt={teamMember.title || 'Team member'}
+                    alt={antrenor.title || 'Antrenor'}
                     fill
                     className="object-cover"
                     priority
@@ -138,65 +138,65 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
               ) : (
                 <div className="h-96 lg:h-[450px] bg-gradient-to-br from-theme-primary/20 to-theme-dark/20 flex items-center justify-center">
                   <div className="text-6xl font-bold text-theme-primary/30">
-                    {teamMember.title?.charAt(0).toUpperCase()}
+                    {antrenor.title?.charAt(0).toUpperCase()}
                   </div>
                 </div>
               )}
 
               <div className="p-6 space-y-4">
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold text-theme-dark">{teamMember.title}</h2>
-                  {teamMember.role && (
+                  <h2 className="text-2xl font-bold text-theme-dark">{antrenor.title}</h2>
+                  {antrenor.role && (
                     <p className="text-lg text-theme-primary font-medium mt-1">
-                      {teamMember.role}
+                      {antrenor.role}
                     </p>
                   )}
                 </div>
 
                 {/* Experience Badge */}
-                {showExperience && teamMember.experience && (
+                {showExperience && antrenor.experience && (
                   <div className="flex items-center justify-center gap-3 py-4 border-y border-gray-100">
                     <Award className="w-8 h-8 text-theme-primary" />
                     <div>
                       <p className="text-2xl font-bold text-theme-dark">
-                        {teamMember.experience}+
+                        {antrenor.experience}+
                       </p>
-                      <p className="text-sm text-gray-600">Ani experiență</p>
+                      <p className="text-sm text-gray-600">Ani experienta</p>
                     </div>
                   </div>
                 )}
 
                 {/* Contact Info */}
-                {showContact && teamMember.contact && (
+                {showContact && antrenor.contact && (
                   <div className="space-y-3">
-                    {teamMember.contact.email && (
+                    {antrenor.contact.email && (
                       <a
-                        href={`mailto:${teamMember.contact.email}`}
+                        href={`mailto:${antrenor.contact.email}`}
                         className="flex items-center gap-3 text-gray-600 hover:text-theme-primary transition-colors"
                       >
                         <Mail className="w-5 h-5 flex-shrink-0" />
-                        <span className="text-sm break-all">{teamMember.contact.email}</span>
+                        <span className="text-sm break-all">{antrenor.contact.email}</span>
                       </a>
                     )}
-                    {teamMember.contact.phone && (
+                    {antrenor.contact.phone && (
                       <a
-                        href={`tel:${teamMember.contact.phone}`}
+                        href={`tel:${antrenor.contact.phone}`}
                         className="flex items-center gap-3 text-gray-600 hover:text-theme-primary transition-colors"
                       >
                         <Phone className="w-5 h-5 flex-shrink-0" />
-                        <span className="text-sm">{teamMember.contact.phone}</span>
+                        <span className="text-sm">{antrenor.contact.phone}</span>
                       </a>
                     )}
                   </div>
                 )}
 
                 {/* Social Media */}
-                {showSocialMedia && teamMember.socialMedia && (
+                {showSocialMedia && antrenor.socialMedia && (
                   <div className="pt-4">
                     <div className="flex justify-center gap-3">
-                      {teamMember.socialMedia.facebook && (
+                      {antrenor.socialMedia.facebook && (
                         <a
-                          href={teamMember.socialMedia.facebook}
+                          href={antrenor.socialMedia.facebook}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-10 h-10 flex items-center justify-center rounded-full bg-theme-primary/10 hover:bg-theme-primary hover:text-white transition-all"
@@ -205,9 +205,9 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
                           <Facebook className="w-5 h-5" />
                         </a>
                       )}
-                      {teamMember.socialMedia.instagram && (
+                      {antrenor.socialMedia.instagram && (
                         <a
-                          href={teamMember.socialMedia.instagram}
+                          href={antrenor.socialMedia.instagram}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-10 h-10 flex items-center justify-center rounded-full bg-theme-primary/10 hover:bg-theme-primary hover:text-white transition-all"
@@ -227,31 +227,31 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
           <div className="lg:col-span-2 space-y-8">
             {/* Main Bio Section */}
             <div className="bg-white rounded-xl shadow-lg p-8">
-              {teamMember.excerpt && (
+              {antrenor.excerpt && (
                 <div className="mb-6">
                   <p className="text-lg text-gray-700 leading-relaxed font-light">
-                    {teamMember.excerpt}
+                    {antrenor.excerpt}
                   </p>
                 </div>
               )}
 
               {/* Rich Text Content */}
-              {teamMember.content && (
+              {antrenor.content && (
                 <div className="prose prose-lg max-w-none prose-headings:text-theme-dark prose-headings:font-bold prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-theme-dark prose-a:text-theme-primary hover:prose-a:text-theme-primary/80">
-                  <RichText data={teamMember.content} />
+                  <RichText data={antrenor.content} />
                 </div>
               )}
             </div>
 
             {/* Specializations Card */}
-            {showSpecializations && teamMember.specializations && teamMember.specializations.length > 0 && (
+            {showSpecializations && antrenor.specializations && antrenor.specializations.length > 0 && (
               <div className="bg-white rounded-xl shadow-lg p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Target className="w-6 h-6 text-theme-primary" />
-                  <h2 className="text-2xl font-bold text-theme-dark">Specializări</h2>
+                  <h2 className="text-2xl font-bold text-theme-dark">Specializari</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {teamMember.specializations.map((spec, index) => (
+                  {antrenor.specializations.map((spec, index) => (
                     <div
                       key={index}
                       className="px-4 py-3 bg-gradient-to-r from-theme-primary/10 to-transparent text-theme-dark rounded-lg font-medium border border-theme-primary/20 hover:border-theme-primary/40 transition-colors"
@@ -274,7 +274,7 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
-                    href="/contact"
+                    href={`/comanda?tip=antrenor&optiune=${encodeURIComponent(antrenor.title || '')}`}
                     className="inline-flex items-center justify-center px-6 py-3 bg-white text-theme-primary font-bold rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     {ctaButtonText}
@@ -291,12 +291,12 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
           </div>
         </div>
 
-        {/* Other Team Members Section */}
-        {showRelatedMembers && otherMembers.length > 0 && (
+        {/* Other Antrenori Section */}
+        {showRelatedMembers && otherAntrenori.length > 0 && (
           <div className="mt-16">
             <h2 className="text-3xl font-bold text-theme-dark mb-8">{relatedMembersTitle}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {otherMembers.map((member) => {
+              {otherAntrenori.map((member) => {
                 const memberImageUrl =
                   member.featuredImage && typeof member.featuredImage === 'object'
                     ? member.featuredImage.url
@@ -307,12 +307,12 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
                     key={member.id}
                     className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
                   >
-                    <Link href={`/team-members/${member.slug}`}>
+                    <Link href={`/antrenori/${member.slug}`}>
                       <div className="relative h-64">
                         {memberImageUrl ? (
                           <Image
                             src={memberImageUrl}
-                            alt={member.title || 'Team member'}
+                            alt={member.title || 'Antrenor'}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
@@ -354,13 +354,13 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
               })}
             </div>
 
-            {/* View All Team Button */}
+            {/* View All Antrenori Button */}
             <div className="text-center mt-8">
               <Link
-                href="/team-members"
+                href="/antrenori"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-theme-primary text-white font-bold rounded-lg hover:bg-theme-primary/90 transition-colors"
               >
-                Vezi toată echipa
+                Vezi toti antrenorii
                 <ChevronRight className="w-5 h-5" />
               </Link>
             </div>
@@ -373,16 +373,16 @@ export default async function TeamMemberPage({ params: paramsPromise }: Args) {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
-  const teamMember = await queryTeamMemberBySlug({ slug })
+  const antrenor = await queryAntrenorBySlug({ slug })
 
-  return generateMeta({ doc: teamMember })
+  return generateMeta({ doc: antrenor })
 }
 
-const queryTeamMemberBySlug = cache(async ({ slug }: { slug: string }) => {
+const queryAntrenorBySlug = cache(async ({ slug }: { slug: string }) => {
   const payload = await getPayload({ config: configPromise })
 
   const result = await payload.find({
-    collection: 'team-members',
+    collection: 'antrenori',
     limit: 1,
     pagination: false,
     where: {

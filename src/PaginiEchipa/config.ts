@@ -105,7 +105,7 @@ export const PaginiEchipa: GlobalConfig = {
         // Individual Page Settings Tab
         {
           label: 'Pagini Individuale',
-          description: 'Setari pentru paginile individuale ale membrilor (ex: /team-members/marius)',
+          description: 'Setari pentru paginile individuale ale antrenorilor (ex: /antrenori/marius)',
           fields: [
             {
               name: 'individualLayout',

@@ -144,7 +144,7 @@ export const PreviewCards: Block = {
               name: 'reference',
               type: 'relationship',
               label: 'Link către',
-              relationTo: ['pages', 'team-members', 'clase'],
+              relationTo: ['pages', 'antrenori', 'clase'],
               admin: {
                 condition: (_, siblingData) => siblingData?.type === 'reference',
               },

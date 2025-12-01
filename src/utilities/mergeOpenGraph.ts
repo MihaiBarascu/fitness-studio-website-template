@@ -3,14 +3,18 @@ import { getServerSideURL } from './getURL'
 
 const defaultOpenGraph: Metadata['openGraph'] = {
   type: 'website',
-  description: 'An open-source website built with Payload and Next.js.',
+  locale: 'ro_RO',
+  description: 'Transilvania Fitness - Sală de fitness modernă în Cluj-Napoca. Antrenamente personalizate, clase de grup, SPA și wellness.',
   images: [
     {
-      url: `${getServerSideURL()}/website-template-OG.webp`,
+      url: `${getServerSideURL()}/og-image.webp`,
+      width: 1200,
+      height: 630,
+      alt: 'Transilvania Fitness - Sală de Fitness Cluj-Napoca',
     },
   ],
-  siteName: 'Payload Website Template',
-  title: 'Payload Website Template',
+  siteName: 'Transilvania Fitness',
+  title: 'Transilvania Fitness - Sală de Fitness Cluj-Napoca',
 }
 
 export const mergeOpenGraph = (og?: Metadata['openGraph']): Metadata['openGraph'] => {
