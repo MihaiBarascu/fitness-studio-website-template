@@ -1,20 +1,31 @@
-import type { CollectionSlug, File, GlobalSlug, Payload, PayloadRequest } from 'payload'
+import type { CollectionSlug, File, Payload, PayloadRequest } from 'payload'
 import type { Media } from '@/payload-types'
 
 import { contactForm as contactFormData } from './contact-form'
 import { contact as contactPageData } from './contact-page'
 import { home } from './home'
-// import { clasePage } from './clase-page' // No longer needed with dedicated Classes collection
-import { image1 } from './image-1'
-import { image2 } from './image-2'
-import { imageHero1 } from './image-hero-1'
 import { serviceCardio } from './service-cardio'
 import { serviceCrossfit } from './service-crossfit'
 import { serviceYoga } from './service-yoga'
-import { footerData } from './footer-data'
-import { getTeamMembersData } from './teamMembersData'
-// import { anpcLogo, solLogo } from './compliance-logos' // Temporar dezactivat până când imaginile sunt pe GitHub
-// Media is NOT cleared - files stay in R2, we reuse existing ones
+
+// Import centralized seed data - MODIFY THIS FILE FOR EACH CLIENT
+import {
+  businessData,
+  themeData,
+  IMAGE_BASE_URL,
+  blogImages,
+  heroImages,
+  blogCategories,
+  teamMembersData,
+  classesData,
+  abonamentsData,
+  scheduleEntries,
+  footerData,
+  headerNavigation,
+  pagesSettings,
+} from './seed-data'
+
+// Collections to clear on seed (media is NOT cleared - files stay in R2)
 const collections: CollectionSlug[] = [
   'categories',
   // 'media', // REMOVED - don't delete media files from R2
@@ -28,9 +39,56 @@ const collections: CollectionSlug[] = [
   'search',
 ]
 
-const _globals: GlobalSlug[] = ['header', 'footer', 'logo']
+// Track seed statistics for final report
+interface SeedStats {
+  mediaReused: number
+  mediaUploaded: number
+  teamMembersCreated: number
+  classesCreated: number
+  abonamentsCreated: number
+  postsCreated: number
+  pagesCreated: number
+  errors: string[]
+}
 
-const categories = ['Classes', 'News', 'Finance', 'Design', 'Software', 'Engineering']
+/**
+ * Sleep utility for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Helper function to create Lexical rich text content
+ */
+const createLexicalContent = (paragraphs: string[]) => ({
+  root: {
+    type: 'root',
+    version: 1,
+    direction: 'ltr' as const,
+    format: '' as const,
+    indent: 0,
+    children: paragraphs.map((text) => ({
+      type: 'paragraph',
+      version: 1,
+      direction: 'ltr' as const,
+      format: '' as const,
+      indent: 0,
+      textFormat: 0,
+      children: [
+        {
+          type: 'text',
+          version: 1,
+          detail: 0,
+          format: 0,
+          mode: 'normal' as const,
+          style: '',
+          text,
+        },
+      ],
+    })),
+  },
+})
 
 // Next.js revalidation errors are normal when seeding the database without a server running
 // i.e. running `yarn seed` locally instead of using the admin UI within an active app
@@ -43,58 +101,57 @@ export const seed = async ({
   payload: Payload
   req: PayloadRequest
 }): Promise<void> => {
-  payload.logger.info('Seeding database...')
+  payload.logger.info('╔════════════════════════════════════════════════════════════╗')
+  payload.logger.info('║           TRANSILVANIA FITNESS - SEED DATABASE             ║')
+  payload.logger.info('║           Configurare din: seed-data.ts                    ║')
+  payload.logger.info('╚════════════════════════════════════════════════════════════╝')
 
-  // we need to clear the media directory before seeding
-  // as well as the collections and globals
-  // this is because while `yarn seed` drops the database
-  // the custom `/api/seed` endpoint does not
+  // Initialize statistics
+  const stats: SeedStats = {
+    mediaReused: 0,
+    mediaUploaded: 0,
+    teamMembersCreated: 0,
+    classesCreated: 0,
+    abonamentsCreated: 0,
+    postsCreated: 0,
+    pagesCreated: 0,
+    errors: [],
+  }
+
+  // Helper to track media operations
+  const trackMediaResult = (result: { reused: boolean }) => {
+    if (result.reused) stats.mediaReused++
+    else stats.mediaUploaded++
+  }
+
   payload.logger.info(`— Clearing collections and globals...`)
 
-  // clear the database
+  // Clear globals first
   await Promise.all([
     payload.updateGlobal({
       slug: 'header',
-      data: {
-        navItems: [],
-      },
+      data: { navItems: [] },
       depth: 0,
-      context: {
-        disableRevalidate: true,
-      },
+      context: { disableRevalidate: true },
     }),
     payload.updateGlobal({
       slug: 'footer',
-      data: {
-        companyInfo: {},
-        columns: [],
-        bottomBar: {},
-      },
+      data: { companyInfo: {}, columns: [], bottomBar: {} },
       depth: 0,
-      context: {
-        disableRevalidate: true,
-      },
+      context: { disableRevalidate: true },
     }),
     payload.updateGlobal({
       slug: 'theme',
-      data: {
-        primaryColor: '',
-        darkColor: '',
-        lightColor: '',
-        textColor: '',
-        surfaceColor: '',
-      },
+      data: { primaryColor: '', darkColor: '', lightColor: '', textColor: '', surfaceColor: '' },
       depth: 0,
-      context: {
-        disableRevalidate: true,
-      },
+      context: { disableRevalidate: true },
     }),
     payload.updateGlobal({
       slug: 'business-info',
       data: {
-        businessName: 'Placeholder', // Required field
+        businessName: 'Placeholder',
         tagline: '',
-        address: 'Placeholder', // Required field
+        address: 'Placeholder',
         phone: '',
         email: '',
         whatsapp: '',
@@ -111,29 +168,17 @@ export const seed = async ({
         twitter: '',
       },
       depth: 0,
-      context: {
-        disableRevalidate: true,
-      },
+      context: { disableRevalidate: true },
     }),
     payload.updateGlobal({
       slug: 'logo',
-      data: {
-        option1: {
-          type: 'text',
-          text: '',
-        },
-        option2: {
-          type: 'text',
-          text: '',
-        },
-      },
+      data: { option1: { type: 'text', text: '' }, option2: { type: 'text', text: '' } },
       depth: 0,
-      context: {
-        disableRevalidate: true,
-      },
+      context: { disableRevalidate: true },
     }),
   ])
 
+  // Clear collections (media is NOT cleared - files stay in R2)
   await Promise.all(
     collections.map((collection) => payload.db.deleteMany({ collection, req, where: {} })),
   )
@@ -144,44 +189,44 @@ export const seed = async ({
       .map((collection) => payload.db.deleteVersions({ collection, req, where: {} })),
   )
 
-  payload.logger.info(`— Seeding demo author and user...`)
+  payload.logger.info(`— Seeding demo author...`)
 
   await payload.delete({
     collection: 'users',
     depth: 0,
-    where: {
-      email: {
-        equals: 'demo-author@example.com',
-      },
-    },
+    where: { email: { equals: 'demo-author@example.com' } },
   })
 
   payload.logger.info(`— Seeding media (reusing existing files from R2)...`)
 
-  // Use getOrCreateMedia to avoid re-uploading files that already exist in R2
-  const [image1Doc, image2Doc, image3Doc, imageHomeDoc] = await Promise.all([
-    getOrCreateMedia(payload, {
-      filename: 'image-post1.webp',
-      url: 'https://raw.githubusercontent.com/MihaiBarascu/template-2/main/src/endpoints/seed/image-post1.webp',
-      alt: image1.alt || 'Post image 1',
-    }),
-    getOrCreateMedia(payload, {
-      filename: 'image-post2.webp',
-      url: 'https://raw.githubusercontent.com/MihaiBarascu/template-2/main/src/endpoints/seed/image-post2.webp',
-      alt: image2.alt || 'Post image 2',
-    }),
-    getOrCreateMedia(payload, {
-      filename: 'image-post3.webp',
-      url: 'https://raw.githubusercontent.com/MihaiBarascu/template-2/main/src/endpoints/seed/image-post3.webp',
-      alt: image2.alt || 'Post image 3',
-    }),
-    getOrCreateMedia(payload, {
-      filename: 'image-hero1.webp',
-      url: 'https://raw.githubusercontent.com/MihaiBarascu/template-2/main/src/endpoints/seed/image-hero1.webp',
-      alt: imageHero1.alt || 'Hero image',
-    }),
-  ])
+  // Blog/post images - from seed-data.ts
+  const blogImageDocs: Media[] = []
+  for (const img of blogImages) {
+    const result = await getOrCreateMediaWithStats(payload, req, {
+      filename: img.filename,
+      url: IMAGE_BASE_URL + img.filename,
+      alt: img.alt,
+    })
+    blogImageDocs.push(result.media)
+    trackMediaResult(result)
+  }
+  const [image1Doc, image2Doc, image3Doc] = blogImageDocs
 
+  // Hero images - from seed-data.ts
+  payload.logger.info(`— Seeding hero images...`)
+  const heroImageDocs: Media[] = []
+  for (const img of heroImages) {
+    const result = await getOrCreateMediaWithStats(payload, req, {
+      filename: img.filename,
+      url: IMAGE_BASE_URL + img.filename,
+      alt: img.alt,
+    })
+    heroImageDocs.push(result.media)
+    trackMediaResult(result)
+  }
+  const [imageHomeDoc] = heroImageDocs
+
+  // Create demo author and categories
   const [demoAuthor, categoriesCreated] = await Promise.all([
     payload.create({
       collection: 'users',
@@ -192,7 +237,7 @@ export const seed = async ({
       },
     }),
     Promise.all(
-      categories.map((category) =>
+      blogCategories.map((category) =>
         payload.create({
           collection: 'categories',
           data: {
@@ -207,21 +252,95 @@ export const seed = async ({
   // Find the Classes category
   const classesCategory = categoriesCreated.find((cat) => cat.title === 'Classes')
 
+  payload.logger.info(`— Seeding team members...`)
+
+  // Create team members from seed-data.ts
+  const teamMembers = []
+  for (const memberData of teamMembersData) {
+    try {
+      const imageDoc = blogImageDocs[memberData.imageIndex] || image1Doc
+      const member = await payload.create({
+        collection: 'team-members',
+        req,
+        depth: 0,
+        data: {
+          title: memberData.title,
+          slug: memberData.slug,
+          role: memberData.role,
+          excerpt: memberData.excerpt,
+          featuredImage: imageDoc.id,
+          experience: memberData.experience,
+          specializations: memberData.specializations,
+          socialMedia: memberData.socialMedia,
+          contact: memberData.contact,
+          _status: 'published',
+          publishedAt: new Date().toISOString(),
+        },
+      })
+      teamMembers.push(member)
+      stats.teamMembersCreated++
+      payload.logger.info(`  ✓ Created team member: ${memberData.title}`)
+    } catch (error) {
+      stats.errors.push(`Team member ${memberData.title}: ${error}`)
+      payload.logger.error(`  ✗ Failed to create team member ${memberData.title}: ${error}`)
+    }
+  }
+
+  payload.logger.info(`— Seeding classes...`)
+
+  // Create classes from seed-data.ts
+  const classes = []
+  for (const classData of classesData) {
+    try {
+      const imageDoc = blogImageDocs[classData.imageIndex] || image1Doc
+      const trainer = teamMembers[classData.trainerIndex] || teamMembers[0]
+
+      const createdClass = await payload.create({
+        collection: 'clase',
+        req,
+        depth: 0,
+        data: {
+          title: classData.title,
+          slug: classData.slug,
+          featuredImage: imageDoc.id,
+          description: classData.description,
+          category: classData.category,
+          difficulty: classData.difficulty,
+          duration: classData.duration,
+          trainer: trainer?.id,
+          capacity: classData.capacity,
+          active: true,
+          _status: 'published',
+          publishedAt: new Date().toISOString(),
+          schedule: classData.schedule,
+          price: classData.price,
+          benefits: classData.benefits,
+          requirements: classData.requirements,
+          content: createLexicalContent([classData.description]),
+        },
+      })
+      classes.push(createdClass)
+      stats.classesCreated++
+      payload.logger.info(`  ✓ Created class: ${classData.title}`)
+    } catch (error) {
+      stats.errors.push(`Class ${classData.title}: ${error}`)
+      payload.logger.error(`  ✗ Failed to create class ${classData.title}: ${error}`)
+    }
+  }
+
   payload.logger.info(`— Seeding service posts...`)
 
-  // Do not create posts with `Promise.all` because we want the posts to be created in order
-  // This way we can sort them by `createdAt` or `publishedAt` and they will be in the expected order
+  // Create service posts
   const yogaData = serviceYoga({ heroImage: image1Doc, blockImage: image2Doc, author: demoAuthor })
   yogaData.categories = classesCategory ? [classesCategory.id] : []
 
   const yogaDoc = await payload.create({
     collection: 'posts',
     depth: 0,
-    context: {
-      disableRevalidate: true,
-    },
+    context: { disableRevalidate: true },
     data: yogaData,
   })
+  stats.postsCreated++
 
   const crossfitData = serviceCrossfit({
     heroImage: image2Doc,
@@ -233,11 +352,10 @@ export const seed = async ({
   const crossfitDoc = await payload.create({
     collection: 'posts',
     depth: 0,
-    context: {
-      disableRevalidate: true,
-    },
+    context: { disableRevalidate: true },
     data: crossfitData,
   })
+  stats.postsCreated++
 
   const cardioData = serviceCardio({
     heroImage: image3Doc,
@@ -249,484 +367,27 @@ export const seed = async ({
   const cardioDoc = await payload.create({
     collection: 'posts',
     depth: 0,
-    context: {
-      disableRevalidate: true,
-    },
+    context: { disableRevalidate: true },
     data: cardioData,
   })
+  stats.postsCreated++
 
-  // update each service post with related posts
-  await payload.update({
-    id: yogaDoc.id,
-    collection: 'posts',
-    data: {
-      relatedPosts: [crossfitDoc.id, cardioDoc.id],
-    },
-  })
-  await payload.update({
-    id: crossfitDoc.id,
-    collection: 'posts',
-    data: {
-      relatedPosts: [yogaDoc.id, cardioDoc.id],
-    },
-  })
-  await payload.update({
-    id: cardioDoc.id,
-    collection: 'posts',
-    data: {
-      relatedPosts: [yogaDoc.id, crossfitDoc.id],
-    },
-  })
-
-  payload.logger.info(`— Seeding team members...`)
-
-  // Create team members using existing images
-  const teamMembersData = getTeamMembersData(image1Doc, image2Doc, image3Doc)
-
-  const teamMembers = await Promise.all(
-    teamMembersData.map((memberData) =>
-      payload.create({
-        collection: 'team-members',
-        depth: 0,
-        data: {
-          ...memberData,
-          featuredImage: memberData.featuredImage.toString(),
-        },
-      })
-    )
-  )
-
-  payload.logger.info(`— Seeding classes...`)
-
-  // Create classes
-  const classes = await Promise.all([
-    payload.create({
-      collection: 'clase',
-      depth: 0,
-      data: {
-        title: 'Yoga pentru Începători',
-        slug: 'yoga-incepatori',
-        featuredImage: image1Doc.id,
-        description: 'Clasă de yoga perfectă pentru cei care vor să înceapă o practică de yoga relaxantă și revigorantă.',
-        category: 'mind-body',
-        difficulty: 'beginner',
-        duration: 60,
-        trainer: teamMembers[1].id, // Maria Ionescu
-        capacity: 20,
-        active: true,
-        _status: 'published' as const,
-        publishedAt: new Date().toISOString(),
-        schedule: [
-          { day: 'monday', time: '18:00' },
-          { day: 'wednesday', time: '18:00' },
-          { day: 'friday', time: '18:00' },
-        ],
-        price: {
-          dropIn: 50,
-          monthly: 350,
-          package: {
-            sessions: 10,
-            price: 400,
-          },
-        },
-        benefits: [
-          { benefit: 'Îmbunătățește flexibilitatea' },
-          { benefit: 'Reduce stresul și anxietatea' },
-          { benefit: 'Întărește musculatura' },
-          { benefit: 'Îmbunătățește postura' },
-        ],
-        requirements: 'Saltea de yoga, prosop, sticlă de apă',
-        content: {
-          root: {
-            type: 'root',
-            version: 1,
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            children: [
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Descoperă beneficiile yoga într-o atmosferă relaxantă și prietenoasă. Clasa noastră pentru începători este perfectă pentru cei care doresc să exploreze yoga pentru prima dată sau să-și consolideze bazele.',
-                  },
-                ],
-              },
-              {
-                type: 'heading',
-                version: 1,
-                tag: 'h3',
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Ce vei învăța',
-                  },
-                ],
-              },
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'În această clasă vei învăța pozițiile de bază ale yoga (asanas), tehnici de respirație (pranayama) și principiile fundamentale ale practicii yoga. Fiecare sesiune include încălzire, secvență de poziții și relaxare finală.',
-                  },
-                ],
-              },
-              {
-                type: 'heading',
-                version: 1,
-                tag: 'h3',
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Pentru cine este potrivită',
-                  },
-                ],
-              },
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Această clasă este perfectă pentru începători absoluți sau pentru cei care vor să-și consolideze bazele. Nu este necesară experiență anterioară. Toate vârstele și nivelurile de fitness sunt binevenite.',
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      },
+  // Update posts with related posts
+  await Promise.all([
+    payload.update({
+      id: yogaDoc.id,
+      collection: 'posts',
+      data: { relatedPosts: [crossfitDoc.id, cardioDoc.id] },
     }),
-    payload.create({
-      collection: 'clase',
-      depth: 0,
-      data: {
-        title: 'CrossFit Intensiv',
-        slug: 'crossfit-intensiv',
-        featuredImage: image2Doc.id,
-        description: 'Antrenament de înaltă intensitate pentru cei care vor rezultate rapide și vizibile.',
-        category: 'strength',
-        difficulty: 'advanced',
-        duration: 45,
-        trainer: teamMembers[0].id, // Mihai Radu
-        capacity: 15,
-        active: true,
-        _status: 'published' as const,
-        publishedAt: new Date().toISOString(),
-        schedule: [
-          { day: 'tuesday', time: '07:00' },
-          { day: 'thursday', time: '07:00' },
-          { day: 'saturday', time: '09:00' },
-        ],
-        price: {
-          dropIn: 70,
-          monthly: 450,
-        },
-        benefits: [
-          { benefit: 'Crește forța și rezistența' },
-          { benefit: 'Arde calorii eficient' },
-          { benefit: 'Dezvoltă masa musculară' },
-          { benefit: 'Îmbunătățește condiția fizică generală' },
-        ],
-        requirements: 'Încălțăminte sport, prosop mare, sticlă de apă, mănuși (opțional)',
-        content: {
-          root: {
-            type: 'root',
-            version: 1,
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            children: [
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'CrossFit este o metodă de antrenament care combină exerciții din gimnastică, haltere olimpice și exerciții cardiovasculare într-un program variat și intens.',
-                  },
-                ],
-              },
-              {
-                type: 'heading',
-                version: 1,
-                tag: 'h3',
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Structura antrenamentului',
-                  },
-                ],
-              },
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Fiecare sesiune începe cu o încălzire dinamică, urmată de exerciții de tehnică și mobilitate. Partea principală constă în WOD (Workout of the Day) - un antrenament intens și variat. Încheierea include stretching și recuperare.',
-                  },
-                ],
-              },
-              {
-                type: 'heading',
-                version: 1,
-                tag: 'h3',
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Rezultate așteptate',
-                  },
-                ],
-              },
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'După 4-6 săptămâni de antrenament constant vei observa îmbunătățiri semnificative în forță, rezistență cardiovasculară, flexibilitate și compoziție corporală. CrossFit dezvoltă toate cele 10 componente ale fitness-ului.',
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      },
+    payload.update({
+      id: crossfitDoc.id,
+      collection: 'posts',
+      data: { relatedPosts: [yogaDoc.id, cardioDoc.id] },
     }),
-    payload.create({
-      collection: 'clase',
-      depth: 0,
-      data: {
-        title: 'Pilates Core',
-        slug: 'pilates-core',
-        featuredImage: image3Doc.id,
-        description: 'Consolidează-ți centrul corpului și îmbunătățește-ți postura cu exerciții Pilates.',
-        category: 'flexibility',
-        difficulty: 'intermediate',
-        duration: 50,
-        trainer: teamMembers[2].id, // Alexandru Popescu
-        capacity: 12,
-        active: true,
-        _status: 'published' as const,
-        publishedAt: new Date().toISOString(),
-        schedule: [
-          { day: 'monday', time: '10:00' },
-          { day: 'wednesday', time: '10:00' },
-          { day: 'friday', time: '10:00' },
-        ],
-        price: {
-          dropIn: 60,
-          monthly: 400,
-          package: {
-            sessions: 8,
-            price: 380,
-          },
-        },
-        benefits: [
-          { benefit: 'Întărește mușchii abdominali' },
-          { benefit: 'Îmbunătățește echilibrul' },
-          { benefit: 'Reduce durerile de spate' },
-          { benefit: 'Tonifică întregul corp' },
-        ],
-        requirements: 'Saltea de yoga, îmbrăcăminte confortabilă',
-        content: {
-          root: {
-            type: 'root',
-            version: 1,
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            children: [
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Pilates este o metodă de exerciții care se concentrează pe întărirea mușchilor centrali ai corpului, îmbunătățirea posturii și creșterea flexibilității.',
-                  },
-                ],
-              },
-              {
-                type: 'heading',
-                version: 1,
-                tag: 'h3',
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Principiile Pilates',
-                  },
-                ],
-              },
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Metoda Pilates se bazează pe 6 principii fundamentale: concentrare, control, centru, fluiditate, precizie și respirație. Fiecare exercițiu este executat cu atenție la detalii și coordonare perfectă cu respirația.',
-                  },
-                ],
-              },
-              {
-                type: 'heading',
-                version: 1,
-                tag: 'h3',
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Beneficii pe termen lung',
-                  },
-                ],
-              },
-              {
-                type: 'paragraph',
-                version: 1,
-                direction: 'ltr',
-                format: '',
-                indent: 0,
-                textFormat: 0,
-                children: [
-                  {
-                    type: 'text',
-                    version: 1,
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Practicarea regulată a Pilates îmbunătățește postura, reduce durerile de spate, crește flexibilitatea și mobilitatea articulară. Este excelent pentru recuperare după accidentări și pentru prevenirea leziunilor.',
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      },
+    payload.update({
+      id: cardioDoc.id,
+      collection: 'posts',
+      data: { relatedPosts: [yogaDoc.id, crossfitDoc.id] },
     }),
   ])
 
@@ -740,250 +401,39 @@ export const seed = async ({
 
   payload.logger.info(`— Seeding abonamente...`)
 
-  // Create abonamente (subscriptions)
-  await Promise.all([
-    // GYM Subscriptions
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Basic',
-        subtitle: 'Intrare liberă',
-        type: 'gym',
-        image: image1Doc.id,
-        price: {
-          amount: 150,
-          period: '/lună',
+  // Create abonamente from seed-data.ts
+  for (const abonamentData of abonamentsData) {
+    try {
+      const imageDoc = blogImageDocs[abonamentData.imageIndex] || image1Doc
+      await payload.create({
+        collection: 'abonamente',
+        req,
+        depth: 0,
+        data: {
+          title: abonamentData.title,
+          subtitle: abonamentData.subtitle,
+          type: abonamentData.type,
+          image: imageDoc.id,
+          price: abonamentData.price,
+          features: abonamentData.features,
+          cta: abonamentData.cta,
+          highlighted: abonamentData.highlighted,
+          highlightLabel: abonamentData.highlightLabel,
+          order: abonamentData.order,
+          active: true,
         },
-        features: [
-          { text: 'Acces nelimitat la sală', included: true },
-          { text: 'Program Luni-Vineri 07:00-22:00', included: true },
-          { text: 'Vestiare și dușuri', included: true },
-          { text: 'Clase fitness gratuite', included: false },
-          { text: 'Antrenor personal', included: false },
-        ],
-        cta: {
-          label: 'Alege Basic',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: false,
-        order: 1,
-        active: true,
-      },
-    }),
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Premium',
-        subtitle: 'Cel mai popular',
-        type: 'gym',
-        image: image2Doc.id,
-        price: {
-          amount: 250,
-          period: '/lună',
-          oldPrice: 300,
-        },
-        features: [
-          { text: 'Acces nelimitat la sală', included: true },
-          { text: 'Program 07:00-22:00 (7 zile)', included: true },
-          { text: 'Vestiare și dușuri premium', included: true },
-          { text: 'Toate clasele fitness incluse', included: true },
-          { text: '1 sesiune antrenor personal/lună', included: true },
-        ],
-        cta: {
-          label: 'Alege Premium',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: true,
-        highlightLabel: 'Popular',
-        order: 2,
-        active: true,
-      },
-    }),
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'VIP',
-        subtitle: 'Experiență completă',
-        type: 'gym',
-        image: image3Doc.id,
-        price: {
-          amount: 450,
-          period: '/lună',
-        },
-        features: [
-          { text: 'Acces nelimitat la sală 24/7', included: true },
-          { text: 'Toate clasele fitness incluse', included: true },
-          { text: 'Vestiare VIP cu saună', included: true },
-          { text: '4 sesiuni antrenor personal/lună', included: true },
-          { text: 'Plan nutrițional personalizat', included: true },
-          { text: 'Acces gratuit SPA', included: true },
-        ],
-        cta: {
-          label: 'Alege VIP',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: false,
-        order: 3,
-        active: true,
-      },
-    }),
-
-    // SPA Subscriptions
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Relaxare SPA',
-        subtitle: '5 intrări',
-        type: 'spa',
-        image: image1Doc.id,
-        price: {
-          amount: 200,
-          period: '/5 vizite',
-        },
-        features: [
-          { text: 'Acces saună și jacuzzi', included: true },
-          { text: 'Prosop și halat inclus', included: true },
-          { text: 'Valabilitate 2 luni', included: true },
-        ],
-        cta: {
-          label: 'Rezervă acum',
-          linkType: 'custom',
-          url: 'tel:+40264123456',
-        },
-        highlighted: false,
-        order: 1,
-        active: true,
-      },
-    }),
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Wellness Nelimitat',
-        subtitle: 'Acces lunar',
-        type: 'spa',
-        image: image2Doc.id,
-        price: {
-          amount: 350,
-          period: '/lună',
-        },
-        features: [
-          { text: 'Acces nelimitat SPA', included: true },
-          { text: 'Toate facilitățile incluse', included: true },
-          { text: 'Reducere 20% la masaje', included: true },
-        ],
-        cta: {
-          label: 'Contactează-ne',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: true,
-        highlightLabel: 'Best Value',
-        order: 2,
-        active: true,
-      },
-    }),
-
-    // Solar Subscriptions
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Solar Basic',
-        subtitle: '100 minute',
-        type: 'solar',
-        image: image3Doc.id,
-        price: {
-          amount: 80,
-          period: '',
-        },
-        features: [
-          { text: '100 minute solar', included: true },
-          { text: 'Valabilitate 3 luni', included: true },
-        ],
-        cta: {
-          label: 'Cumpără',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: false,
-        order: 1,
-        active: true,
-      },
-    }),
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Solar Premium',
-        subtitle: '300 minute',
-        type: 'solar',
-        image: image1Doc.id,
-        price: {
-          amount: 200,
-          period: '',
-          oldPrice: 240,
-        },
-        features: [
-          { text: '300 minute solar', included: true },
-          { text: 'Valabilitate 6 luni', included: true },
-          { text: 'Cremă bronzantă gratuită', included: true },
-        ],
-        cta: {
-          label: 'Cumpără',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: true,
-        highlightLabel: 'Economie 17%',
-        order: 2,
-        active: true,
-      },
-    }),
-
-    // Combo Package: Fitness + SPA
-    payload.create({
-      collection: 'abonamente',
-      depth: 0,
-      data: {
-        title: 'Fitness + SPA',
-        subtitle: 'Pachet complet',
-        type: 'fitness-spa',
-        image: image2Doc.id,
-        price: {
-          amount: 380,
-          period: '/lună',
-          oldPrice: 450,
-        },
-        features: [
-          { text: 'Abonament Premium Sală', included: true },
-          { text: 'Acces nelimitat SPA', included: true },
-          { text: 'Reducere 15%', included: true },
-        ],
-        cta: {
-          label: 'Alege pachetul',
-          linkType: 'custom',
-          url: '/contact',
-        },
-        highlighted: true,
-        highlightLabel: 'Economie 15%',
-        order: 1,
-        active: true,
-      },
-    }),
-  ])
+      })
+      stats.abonamentsCreated++
+      payload.logger.info(`  ✓ Created abonament: ${abonamentData.title}`)
+    } catch (error) {
+      stats.errors.push(`Abonament ${abonamentData.title}: ${error}`)
+      payload.logger.error(`  ✗ Failed to create abonament ${abonamentData.title}: ${error}`)
+    }
+  }
 
   payload.logger.info(`— Seeding pages...`)
 
-  // First create the home page data
-  const [_] = await Promise.all([
+  await Promise.all([
     payload.create({
       collection: 'pages',
       depth: 0,
@@ -992,266 +442,222 @@ export const seed = async ({
     payload.create({
       collection: 'pages',
       depth: 0,
-      data: contactPageData({
-        contactForm: contactForm,
-      }),
+      data: contactPageData({ contactForm }),
     }),
   ])
-
-  // Create clase page after we have the category - disabled as we now have a dedicated Classes collection
-  // const clasePageDoc = await payload.create({
-  //   collection: 'pages',
-  //   depth: 0,
-  //   data: clasePage(classesCategory),
-  // })
+  stats.pagesCreated = 2
 
   payload.logger.info(`— Seeding globals...`)
 
+  // Build footer data structure
+  const footerColumns = footerData.columns.map((col) => {
+    if (col.contentType === 'links' && 'links' in col) {
+      return {
+        title: col.title,
+        contentType: col.contentType,
+        links: col.links.map((l) => ({
+          link: { type: 'custom' as const, label: l.label, url: l.url },
+        })),
+      }
+    }
+    if (col.contentType === 'text' && 'textItems' in col) {
+      return {
+        title: col.title,
+        contentType: col.contentType,
+        textItems: col.textItems,
+      }
+    }
+    return {
+      title: col.title,
+      contentType: col.contentType,
+    }
+  })
+
   await Promise.all([
-    // Logo Global - Text logo "Transilvania Gym"
+    // Logo Global
     payload.updateGlobal({
       slug: 'logo',
       data: {
-        option1: {
-          type: 'text',
-          text: 'Transilvania Gym',
-        },
-        option2: {
-          type: 'text',
-          text: 'Transilvania Gym',
-        },
+        option1: { type: 'text', text: businessData.name },
+        option2: { type: 'text', text: businessData.name },
       },
     }),
+    // Header Global
     payload.updateGlobal({
       slug: 'header',
       data: {
         navItems: [
           {
             itemType: 'link',
-            link: {
-              type: 'custom',
-              label: 'Acasă',
-              url: '/',
-            },
+            link: { type: 'custom', label: 'Acasă', url: '/' },
           },
           {
             itemType: 'linkWithSubItems',
-            parentLink: {
-              type: 'custom',
-              label: 'Clase',
-              url: '/clase',
-            },
+            parentLink: { type: 'custom', label: headerNavigation.classesDropdown.label, url: headerNavigation.classesDropdown.url },
             subItems: [
-              {
+              { link: { type: 'custom', label: 'Toate Clasele', url: '/clase' } },
+              ...classes.map((c) => ({
                 link: {
-                  type: 'custom',
-                  label: 'Toate Clasele',
-                  url: '/clase',
+                  type: 'reference' as const,
+                  label: c.title,
+                  reference: { relationTo: 'clase' as const, value: c.id },
                 },
-              },
-              {
-                link: {
-                  type: 'reference',
-                  label: 'Yoga',
-                  reference: {
-                    relationTo: 'clase',
-                    value: classes[0].id,
-                  },
-                },
-              },
-              {
-                link: {
-                  type: 'reference',
-                  label: 'CrossFit',
-                  reference: {
-                    relationTo: 'clase',
-                    value: classes[1].id,
-                  },
-                },
-              },
-              {
-                link: {
-                  type: 'reference',
-                  label: 'Pilates',
-                  reference: {
-                    relationTo: 'clase',
-                    value: classes[2].id,
-                  },
-                },
-              },
+              })),
             ],
           },
-          {
-            itemType: 'link',
-            link: {
-              type: 'custom',
-              label: 'Abonamente',
-              url: '/abonamente',
-            },
-          },
-          {
-            itemType: 'link',
-            link: {
-              type: 'custom',
-              label: 'Echipa',
-              url: '/team-members',
-            },
-          },
-          {
-            itemType: 'link',
-            link: {
-              type: 'custom',
-              label: 'Contact',
-              url: '/contact',
-            },
-          },
+          ...headerNavigation.mainLinks
+            .filter((link) => link.url !== '/')
+            .map((link) => ({
+              itemType: 'link' as const,
+              link: { type: 'custom' as const, label: link.label, url: link.url },
+            })),
           {
             itemType: 'socialMedia',
-            socialPlatforms: ['facebook', 'instagram', 'tiktok'],
+            socialPlatforms: [...headerNavigation.socialPlatforms],
           },
         ],
       },
     }),
+    // Footer Global
     payload.updateGlobal({
       slug: 'footer',
-      data: footerData,
-    }),
-    payload.updateGlobal({
-      slug: 'theme',
       data: {
-        primaryColor: '#f13a11',
-        darkColor: '#171819',
-        lightColor: '#ffffff',
-        textColor: '#666262',
-        surfaceColor: '#f9f9f9',
+        companyInfo: {
+          description: footerData.description,
+          showSocialHere: true,
+        },
+        columns: footerColumns,
+        bottomBar: {
+          copyright: `© ${new Date().getFullYear()} ${businessData.name}. Toate drepturile rezervate.`,
+          legalLinks: footerData.legalLinks.map((l) => ({
+            link: { type: 'custom' as const, label: l.label, url: l.url, newTab: l.newTab },
+          })),
+        },
       },
     }),
+    // Theme Global
+    payload.updateGlobal({
+      slug: 'theme',
+      data: themeData,
+    }),
+    // Business Info Global
     payload.updateGlobal({
       slug: 'business-info',
       data: {
-        businessName: 'Transilvania Fitness',
-        tagline: 'Transformă-ți corpul și mintea',
-        address: 'Str. Moților nr. 54, Cluj-Napoca, România',
-        phone: '+40 264 123 456',
-        email: 'contact@transilvaniagym.ro',
-        whatsapp: '+40 264 123 456',
-        workingHours: [
-          { days: 'Luni - Vineri', hours: '07:00 - 22:00' },
-          { days: 'Sâmbătă', hours: '08:00 - 20:00' },
-          { days: 'Duminică', hours: '09:00 - 18:00' },
-        ],
+        businessName: businessData.name,
+        tagline: businessData.tagline,
+        address: businessData.address,
+        phone: businessData.phone,
+        email: businessData.email,
+        whatsapp: businessData.whatsapp,
+        workingHours: businessData.workingHours,
         scheduleTitle: 'Orar Săptămânal',
-        scheduleEntries: [
-          { day: 'monday', time: '07:00', endTime: '08:00', className: 'Morning Cardio', trainer: 'Dan Popescu' },
-          { day: 'monday', time: '18:00', endTime: '19:00', className: 'Yoga', trainer: 'Maria Ionescu' },
-          { day: 'monday', time: '19:00', endTime: '19:45', className: 'Kango Jumps', trainer: 'Marius David' },
-          { day: 'tuesday', time: '07:00', endTime: '07:45', className: 'CrossFit', trainer: 'Alexandru Popescu' },
-          { day: 'tuesday', time: '09:00', endTime: '10:00', className: 'TRX Training', trainer: 'Ana Marinescu' },
-          { day: 'tuesday', time: '18:00', endTime: '18:45', className: 'Spinning', trainer: 'Vlad Ionescu' },
-          { day: 'wednesday', time: '10:00', endTime: '10:50', className: 'Pilates Core', trainer: 'Mihai Radu' },
-          { day: 'wednesday', time: '18:00', endTime: '19:00', className: 'Yoga', trainer: 'Maria Ionescu' },
-          { day: 'wednesday', time: '19:30', endTime: '20:30', className: 'Boxing Fitness', trainer: 'Radu Constantin' },
-          { day: 'thursday', time: '07:00', endTime: '07:45', className: 'CrossFit', trainer: 'Alexandru Popescu' },
-          { day: 'thursday', time: '17:00', endTime: '17:50', className: 'Aerobic Step', trainer: 'Elena Dumitrescu' },
-          { day: 'friday', time: '10:00', endTime: '10:50', className: 'Pilates Core', trainer: 'Mihai Radu' },
-          { day: 'friday', time: '18:00', endTime: '19:00', className: 'Yoga', trainer: 'Maria Ionescu' },
-          { day: 'saturday', time: '09:00', endTime: '09:45', className: 'CrossFit', trainer: 'Alexandru Popescu' },
-          { day: 'saturday', time: '11:00', endTime: '12:30', className: 'Zumba Party', trainer: 'Cristina Popa' },
-          { day: 'sunday', time: '10:00', endTime: '11:15', className: 'Yoga Relaxare', trainer: 'Maria Ionescu' },
-          { day: 'sunday', time: '16:00', endTime: '17:00', className: 'Stretching & Recovery', trainer: 'Team' },
-        ],
-        googleMapsEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2732.4729182042995!2d23.588416315676973!3d46.77121097913861!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47490e8a9c5b81d1%3A0x3c8e3a1f8f7c8b9!2sCluj-Napoca%2C%20Romania!5e0!3m2!1sen!2s!4v1234567890123!5m2!1sen!2s',
-        googleMapsLink: 'https://goo.gl/maps/cluj-napoca',
-        facebook: 'https://facebook.com/transilvaniagym',
-        instagram: 'https://instagram.com/transilvaniagym',
-        tiktok: 'https://tiktok.com/@transilvaniagym',
-        youtube: 'https://youtube.com/@transilvaniagym',
-        linkedin: '',
-        twitter: '',
+        scheduleEntries: scheduleEntries,
+        googleMapsEmbed: businessData.googleMapsEmbed,
+        googleMapsLink: businessData.googleMapsLink,
+        facebook: businessData.facebook,
+        instagram: businessData.instagram,
+        tiktok: businessData.tiktok,
+        youtube: businessData.youtube,
+        linkedin: businessData.linkedin,
+        twitter: businessData.twitter,
       },
     }),
-    // Pagini Echipa - Team pages settings
+    // Pagini Echipa
     payload.updateGlobal({
       slug: 'pagini-echipa',
       data: {
-        heroTitle: 'Echipa Noastră',
-        heroSubtitle: 'Cunoaște antrenorii noștri profesioniști, dedicați să te ajute să îți atingi obiectivele',
+        heroTitle: pagesSettings.echipa.heroTitle,
+        heroSubtitle: pagesSettings.echipa.heroSubtitle,
         heroBackground: imageHomeDoc.id,
-        columns: '3',
-        cardType: 'team',
-        showSpecialization: true,
-        meta: {
-          title: 'Echipa | Transilvania Fitness',
-          description: 'Cunoaște echipa de antrenori profesioniști de la Transilvania Fitness. Experți în fitness, yoga, CrossFit și nutriție.',
-        },
-        // Individual page settings
-        individualLayout: 'sidebar',
-        showExperience: true,
-        showSpecializations: true,
-        showContact: true,
-        showSocialMedia: true,
-        showCTA: true,
-        showRelatedMembers: true,
-        ctaTitle: 'Vrei să lucrezi cu {name}?',
-        ctaDescription: 'Contactează-ne pentru a programa o sesiune de antrenament sau pentru mai multe informații despre serviciile noastre.',
-        ctaButtonText: 'Contactează-ne',
-        ctaSecondaryButtonText: 'Vezi clasele disponibile',
-        relatedMembersTitle: 'Restul echipei',
-        relatedMembersCount: 3,
+        columns: pagesSettings.echipa.columns,
+        cardType: pagesSettings.echipa.cardType,
+        showSpecialization: pagesSettings.echipa.showSpecialization,
+        meta: pagesSettings.echipa.meta,
+        individualLayout: pagesSettings.echipa.individualLayout,
+        showExperience: pagesSettings.echipa.showExperience,
+        showSpecializations: pagesSettings.echipa.showSpecializations,
+        showContact: pagesSettings.echipa.showContact,
+        showSocialMedia: pagesSettings.echipa.showSocialMedia,
+        showCTA: pagesSettings.echipa.showCTA,
+        showRelatedMembers: pagesSettings.echipa.showRelatedMembers,
+        ctaTitle: pagesSettings.echipa.ctaTitle,
+        ctaDescription: pagesSettings.echipa.ctaDescription,
+        ctaButtonText: pagesSettings.echipa.ctaButtonText,
+        ctaSecondaryButtonText: pagesSettings.echipa.ctaSecondaryButtonText,
+        relatedMembersTitle: pagesSettings.echipa.relatedMembersTitle,
+        relatedMembersCount: pagesSettings.echipa.relatedMembersCount,
       },
     }),
-    // Pagini Clase - Classes pages settings
+    // Pagini Clase
     payload.updateGlobal({
       slug: 'pagini-clase',
       data: {
-        heroTitle: 'Clasele Noastre',
-        heroSubtitle: 'Descoperă programul complet de clase fitness pentru toate nivelurile',
+        heroTitle: pagesSettings.clase.heroTitle,
+        heroSubtitle: pagesSettings.clase.heroSubtitle,
         heroBackground: imageHomeDoc.id,
-        showScheduleLink: true,
-        columns: '3',
-        cardType: 'class',
-        meta: {
-          title: 'Clase Fitness | Transilvania Fitness',
-          description: 'Explorează clasele noastre de fitness: Yoga, CrossFit, Pilates, Spinning și multe altele. Program variat pentru începători și avansați.',
-        },
-        // Individual page settings
-        individualLayout: 'sidebar',
-        showSchedule: true,
-        showPricing: true,
-        showTrainer: true,
-        showBenefits: true,
-        showRequirements: true,
-        showRelatedClasses: true,
-        relatedClassesTitle: 'Alte clase similare',
-        relatedClassesCount: 3,
-        ctaButtonText: 'Rezervă acum',
+        showScheduleLink: pagesSettings.clase.showScheduleLink,
+        columns: pagesSettings.clase.columns,
+        cardType: pagesSettings.clase.cardType,
+        meta: pagesSettings.clase.meta,
+        individualLayout: pagesSettings.clase.individualLayout,
+        showSchedule: pagesSettings.clase.showSchedule,
+        showPricing: pagesSettings.clase.showPricing,
+        showTrainer: pagesSettings.clase.showTrainer,
+        showBenefits: pagesSettings.clase.showBenefits,
+        showRequirements: pagesSettings.clase.showRequirements,
+        showRelatedClasses: pagesSettings.clase.showRelatedClasses,
+        relatedClassesTitle: pagesSettings.clase.relatedClassesTitle,
+        relatedClassesCount: pagesSettings.clase.relatedClassesCount,
+        ctaButtonText: pagesSettings.clase.ctaButtonText,
       },
     }),
-    // Pagini Abonamente - Subscriptions pages settings
+    // Pagini Abonamente
     payload.updateGlobal({
       slug: 'pagini-abonamente',
       data: {
-        heroTitle: 'Abonamente',
-        heroSubtitle: 'Alege abonamentul potrivit pentru stilul tău de viață și obiectivele tale',
+        heroTitle: pagesSettings.abonamente.heroTitle,
+        heroSubtitle: pagesSettings.abonamente.heroSubtitle,
         heroBackground: imageHomeDoc.id,
-        showFilters: true,
-        columns: '3',
-        defaultFilter: 'all',
-        meta: {
-          title: 'Abonamente | Transilvania Fitness',
-          description: 'Descoperă abonamentele noastre flexibile: Sală, SPA, Solar și pachete combo. Prețuri competitive și beneficii exclusive.',
-        },
+        showFilters: pagesSettings.abonamente.showFilters,
+        columns: pagesSettings.abonamente.columns,
+        defaultFilter: pagesSettings.abonamente.defaultFilter,
+        meta: pagesSettings.abonamente.meta,
       },
     }),
   ])
 
+  // Final summary report
+  payload.logger.info('')
+  payload.logger.info('╔════════════════════════════════════════════════════════════╗')
+  payload.logger.info('║                    SEED COMPLETE                           ║')
+  payload.logger.info('╠════════════════════════════════════════════════════════════╣')
+  payload.logger.info(`║  Media reused from R2:     ${String(stats.mediaReused).padStart(3)}                            ║`)
+  payload.logger.info(`║  Media uploaded to R2:     ${String(stats.mediaUploaded).padStart(3)}                            ║`)
+  payload.logger.info(`║  Team members created:     ${String(stats.teamMembersCreated).padStart(3)}                            ║`)
+  payload.logger.info(`║  Classes created:          ${String(stats.classesCreated).padStart(3)}                            ║`)
+  payload.logger.info(`║  Abonaments created:       ${String(stats.abonamentsCreated).padStart(3)}                            ║`)
+  payload.logger.info(`║  Posts created:            ${String(stats.postsCreated).padStart(3)}                            ║`)
+  payload.logger.info(`║  Pages created:            ${String(stats.pagesCreated).padStart(3)}                            ║`)
+  if (stats.errors.length > 0) {
+    payload.logger.info('╠════════════════════════════════════════════════════════════╣')
+    payload.logger.info(`║  ERRORS: ${stats.errors.length}                                              ║`)
+    stats.errors.forEach((err) => {
+      payload.logger.error(`  - ${err}`)
+    })
+  }
+  payload.logger.info('╚════════════════════════════════════════════════════════════╝')
+  payload.logger.info('')
+  payload.logger.info(`Business: ${businessData.name} - ${businessData.tagline}`)
   payload.logger.info('Seeded database successfully!')
 }
 
 async function fetchFileByURL(url: string): Promise<File> {
   const res = await fetch(url, {
-    credentials: 'include',
     method: 'GET',
+    headers: {
+      Accept: 'image/*',
+    },
   })
 
   if (!res.ok) {
@@ -1260,23 +666,44 @@ async function fetchFileByURL(url: string): Promise<File> {
 
   const data = await res.arrayBuffer()
 
+  if (data.byteLength === 0) {
+    throw new Error(`Empty response from ${url}`)
+  }
+
+  const filename = url.split('/').pop() || `file-${Date.now()}`
+  const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
+
+  // Map extensions to proper MIME types
+  const mimeTypes: Record<string, string> = {
+    avif: 'image/avif',
+    webp: 'image/webp',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+  }
+
   return {
-    name: url.split('/').pop() || `file-${Date.now()}`,
+    name: filename,
     data: Buffer.from(data),
-    mimetype: `image/${url.split('.').pop()}`,
+    mimetype: mimeTypes[ext] || `image/${ext}`,
     size: data.byteLength,
   }
 }
 
 /**
- * Get existing media by alt text or create new one if not exists
- * This prevents re-uploading the same files to R2 on every seed
+ * Get existing media by filename/alt, or create new one if not exists
+ * Returns both the media and a flag indicating if it was reused (for statistics)
  *
- * Note: We search by 'alt' instead of 'filename' because Payload may rename
- * files on upload (e.g., image-hero1.webp → image-hero1-1.webp) if they exist
+ * Uses alt text for matching first (most reliable for seed data).
+ * Falls back to filename contains matching for renamed files.
+ *
+ * Includes retry logic for MongoDB write conflicts.
+ * Passes req for transaction safety (Payload best practice).
  */
-async function getOrCreateMedia(
+async function getOrCreateMediaWithStats(
   payload: Payload,
+  req: PayloadRequest,
   {
     filename,
     url,
@@ -1285,52 +712,71 @@ async function getOrCreateMedia(
     filename: string
     url: string
     alt: string
-  }
-): Promise<Media> {
-  // First, try to find by alt text (most reliable for our seed data)
-  const existingByAlt = await payload.find({
-    collection: 'media',
-    where: {
-      alt: {
-        equals: alt,
+  },
+  retryCount = 0,
+): Promise<{ media: Media; reused: boolean }> {
+  const MAX_RETRIES = 3
+
+  try {
+    // First, try to find by alt text (most reliable for our seed data)
+    const existingByAlt = await payload.find({
+      collection: 'media',
+      req,
+      where: {
+        alt: {
+          equals: alt,
+        },
       },
-    },
-    limit: 1,
-  })
+      limit: 1,
+    })
 
-  if (existingByAlt.docs.length > 0) {
-    payload.logger.info(`  → Using existing media (by alt): ${alt}`)
-    return existingByAlt.docs[0] as Media
-  }
+    if (existingByAlt.docs.length > 0) {
+      const existingMedia = existingByAlt.docs[0] as Media
+      payload.logger.info(`  → Reusing existing media (by alt): ${alt}`)
+      return { media: existingMedia, reused: true }
+    }
 
-  // Fallback: try to find by filename (with 'contains' for renamed files)
-  const baseFilename = filename.replace(/\.[^.]+$/, '') // Remove extension
-  const existingByFilename = await payload.find({
-    collection: 'media',
-    where: {
-      filename: {
-        contains: baseFilename,
+    // Fallback: try to find by filename (with 'contains' for renamed files)
+    const baseFilename = filename.replace(/\.[^.]+$/, '') // Remove extension
+    const existingByFilename = await payload.find({
+      collection: 'media',
+      req,
+      where: {
+        filename: {
+          contains: baseFilename,
+        },
       },
-    },
-    limit: 1,
-  })
+      limit: 1,
+    })
 
-  if (existingByFilename.docs.length > 0) {
-    payload.logger.info(`  → Using existing media (by filename): ${existingByFilename.docs[0].filename}`)
-    return existingByFilename.docs[0] as Media
+    if (existingByFilename.docs.length > 0) {
+      const existingMedia = existingByFilename.docs[0] as Media
+      payload.logger.info(`  → Reusing existing media (by filename): ${existingMedia.filename}`)
+      return { media: existingMedia, reused: true }
+    }
+
+    // File doesn't exist, fetch and upload
+    payload.logger.info(`  → Uploading new media: ${filename}`)
+    const fileBuffer = await fetchFileByURL(url)
+
+    const newMedia = await payload.create({
+      collection: 'media',
+      req,
+      data: {
+        alt,
+      },
+      file: fileBuffer,
+    })
+
+    return { media: newMedia as Media, reused: false }
+  } catch (error) {
+    // Handle MongoDB write conflicts with retry
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('WriteConflict') && retryCount < MAX_RETRIES) {
+      payload.logger.info(`  → Write conflict, retrying (${retryCount + 1}/${MAX_RETRIES})...`)
+      await sleep(500 * (retryCount + 1)) // Exponential backoff
+      return getOrCreateMediaWithStats(payload, req, { filename, url, alt }, retryCount + 1)
+    }
+    throw error
   }
-
-  // File doesn't exist, fetch and upload
-  payload.logger.info(`  → Uploading new media: ${filename}`)
-  const fileBuffer = await fetchFileByURL(url)
-
-  const newMedia = await payload.create({
-    collection: 'media',
-    data: {
-      alt,
-    },
-    file: fileBuffer,
-  })
-
-  return newMedia as Media
 }
