@@ -381,13 +381,6 @@ export interface Page {
 export interface Post {
   id: string;
   title: string;
-  postType?: ('blog' | 'service') | null;
-  serviceDetails?: {
-    price?: string | null;
-    duration?: string | null;
-    schedule?: string | null;
-    trainer?: string | null;
-  };
   heroImage?: (string | null) | Media;
   content: {
     root: {
@@ -2202,15 +2195,6 @@ export interface ScheduleBlockSelect<T extends boolean = true> {
  */
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
-  postType?: T;
-  serviceDetails?:
-    | T
-    | {
-        price?: T;
-        duration?: T;
-        schedule?: T;
-        trainer?: T;
-      };
   heroImage?: T;
   content?: T;
   relatedPosts?: T;

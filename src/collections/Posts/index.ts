@@ -29,6 +29,10 @@ import { slugField } from 'payload'
 
 export const Posts: CollectionConfig<'posts'> = {
   slug: 'posts',
+  labels: {
+    singular: 'Postare',
+    plural: 'Postari',
+  },
   access: {
     create: authenticated,
     delete: authenticated,
@@ -41,9 +45,10 @@ export const Posts: CollectionConfig<'posts'> = {
   defaultPopulate: {
     title: true,
     slug: true,
+    heroImage: true,
     categories: true,
-    postType: true,
-    serviceDetails: true,
+    publishedAt: true,
+    populatedAuthors: true,
     meta: {
       image: true,
       description: true,
@@ -72,53 +77,6 @@ export const Posts: CollectionConfig<'posts'> = {
       name: 'title',
       type: 'text',
       required: true,
-    },
-    {
-      name: 'postType',
-      type: 'select',
-      defaultValue: 'blog',
-      options: [
-        {
-          label: 'Blog Post',
-          value: 'blog',
-        },
-        {
-          label: 'Service',
-          value: 'service',
-        },
-      ],
-      admin: {
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'serviceDetails',
-      type: 'group',
-      admin: {
-        condition: (data) => data?.postType === 'service',
-      },
-      fields: [
-        {
-          name: 'price',
-          type: 'text',
-          label: 'Price',
-        },
-        {
-          name: 'duration',
-          type: 'text',
-          label: 'Duration',
-        },
-        {
-          name: 'schedule',
-          type: 'text',
-          label: 'Schedule',
-        },
-        {
-          name: 'trainer',
-          type: 'text',
-          label: 'Trainer',
-        },
-      ],
     },
     {
       type: 'tabs',

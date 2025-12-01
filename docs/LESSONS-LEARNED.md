@@ -7,16 +7,19 @@
 
 ## Quick Reference
 
-| Problemă | Soluție | Secțiune |
+| Problemă | Solutie | Sectiune |
 |----------|---------|----------|
-| Seed data împrăștiată | Folosește `seed-data.ts` centralizat | [#1](#1-seed-data-centralizat) |
-| Media se reîncarcă la fiecare seed | `getOrCreateMediaWithStats()` cu retry | [#2](#2-media-reuse-in-r2) |
+| Seed data imprastiata | Foloseste `seed-data.ts` centralizat | [#1](#1-seed-data-centralizat) |
+| Media se reincarca la fiecare seed | `getOrCreateMediaWithStats()` cu retry | [#2](#2-media-reuse-in-r2) |
 | MongoDB write conflicts | Retry logic cu exponential backoff | [#3](#3-retry-logic-mongodb) |
-| Link field cu reference | Structura corectă pentru seeder | [#4](#4-link-field-reference) |
+| Link field cu reference | Structura corecta pentru seeder | [#4](#4-link-field-reference) |
 | Header itemType obligatoriu | `itemType: 'link'` sau `'linkWithSubItems'` | [#5](#5-header-navitems-structure) |
 | Footer content types | `'links' | 'text' | 'contact' | 'schedule'` | [#6](#6-footer-column-types) |
-| RichText null check | Verifică existența `root` | [#7](#7-richtext-null-check) |
+| RichText null check | Verifica existenta `root` | [#7](#7-richtext-null-check) |
 | Globals clearing specific | Specific data per global, nu generic | [#8](#8-globals-clearing) |
+| **Diacritice in campuri logice** | **EVITA diacritice in alt, labels, slug** | [#9](#9-evita-diacritice) |
+| **Imagini pentru seed** | **Repo public seed-assets** | [#10](#10-seed-assets-repo) |
+| **Promise.all + req = conflict** | **Secvential sau fara req** | [#12](#12-mongodb-transaction-conflicts-cu-promiseall) |
 
 ---
 
@@ -429,10 +432,165 @@ După refactoring, seeder-ul afișează statistici:
 
 ---
 
-## De Adăugat în Sesiuni Viitoare
+---
+
+## Session 2: Image Assets & Diacritics (2024-12-01)
+
+### #9 Evita Diacritice
+
+**Problema:** Diacriticele romanesti (ă, â, î, ș, ț) pot cauza probleme in matching/lookup.
+
+**Regula:** NICIODATA diacritice in campuri care afecteaza logica:
+
+```typescript
+// ❌ GRESIT - diacritice in alt (afecteaza matching)
+{ alt: 'Clasă de yoga în grup - stretching și relaxare' }
+
+// ✅ CORECT - fara diacritice in campuri operative
+{ alt: 'Clasa de yoga in grup - stretching si relaxare' }
+
+// ❌ GRESIT - diacritice in labels
+labels: { singular: 'Postare', plural: 'Postări' }
+
+// ✅ CORECT
+labels: { singular: 'Postare', plural: 'Postari' }
+```
+
+**Unde sa EVITI diacritice:**
+- `alt` text pentru imagini
+- `labels` in Payload collections
+- `slug` fields
+- `filename` values
+- Orice camp folosit pentru filtering/searching
+
+**Unde sunt OK diacritice:**
+- Rich text content / descrieri
+- Text afisat utilizatorilor
+- Body content pentru blog posts
+
+---
+
+### #10 Seed Assets Repo
+
+**Problema:** Repository privat = URL-uri pentru imagini nu functioneaza in seeder.
+
+**Solutia:** Repository public separat pentru seed assets.
+
+```
+Repository: https://github.com/MihaiBarascu/seed-assets
+Structura:
+seed-assets/
+├── transilvania-fitness/
+│   ├── trainers/
+│   │   ├── trainer-male-1.jpg
+│   │   ├── trainer-female-1.jpg
+│   │   └── trainer-male-2.jpg
+│   ├── classes/
+│   │   ├── yoga-class-1.jpg
+│   │   ├── crossfit-battle-ropes.jpg
+│   │   └── ...
+│   ├── hero/
+│   │   └── gym-barbell-dark.jpg
+│   └── blog/
+├── [alte-proiecte]/
+└── README.md
+```
+
+**Configurare in seed-data.ts:**
+```typescript
+// IMPORTANT: Verifica branch-ul repo-ului (master vs main)
+export const IMAGE_BASE_URL =
+  'https://raw.githubusercontent.com/MihaiBarascu/seed-assets/master/transilvania-fitness/'
+
+export const blogImages = [
+  { filename: 'trainers/trainer-male-1.jpg', alt: 'Antrenor masculin fitness' },
+  { filename: 'classes/yoga-class-1.jpg', alt: 'Clasa de yoga in grup' },
+]
+```
+
+**ATENTIE:** Verifica branch-ul default al repo-ului (`master` sau `main`) - 404 daca e gresit!
+
+**Beneficii:**
+- Reutilizabil pentru toate proiectele
+- Proiectul principal ramane privat
+- GitHub raw URLs sunt fiabile
+- Version controlled
+
+---
+
+### #11 Unsplash Download Process
+
+**Pentru a descarca imagini de calitate de pe Unsplash:**
+
+1. **Navigheaza** cu Playwright MCP pe unsplash.com/s/photos/[search-term]
+2. **Click pe imagine** pentru detalii
+3. **Verifica "Download free"** (NU Unsplash+)
+4. **Ia photo ID** din URL: `unsplash.com/photos/[PHOTO_ID]`
+
+**Comanda download:**
+```bash
+curl -L -o [cale-locala].jpg "https://unsplash.com/photos/[PHOTO_ID]/download?force=true"
+```
+
+**Verifica descarcarea:**
+```bash
+ls -la [cale]  # Fisiere calitate: 1-5MB
+```
+
+---
+
+### #12 MongoDB Transaction Conflicts cu Promise.all
+
+**Problema:** Eroare `NoSuchTransaction` cand folosesti `Promise.all` cu `req` in operatii paralele.
+
+```
+MongoServerError: Given transaction number 11 on session ...
+does not match any in-progress transactions.
+The active transaction number is 10
+```
+
+**Cauza:** MongoDB transactions nu suporta operatii paralele in acelasi session. Cand pasezi `req` la `Promise.all`, toate operatiile incearca sa foloseasca aceeasi tranzactie simultan.
+
+**Solutia:** Ruleaza operatiile secvential SAU elimina `req` daca nu e necesar:
+
+```typescript
+// ❌ GRESIT - Conflict de tranzactie
+await Promise.all([
+  payload.update({ id: post1.id, req, ... }),
+  payload.update({ id: post2.id, req, ... }),
+  payload.update({ id: post3.id, req, ... }),
+])
+
+// ✅ CORECT - Secvential (cu req daca e nevoie)
+await payload.update({ id: post1.id, req, ... })
+await payload.update({ id: post2.id, req, ... })
+await payload.update({ id: post3.id, req, ... })
+
+// ✅ CORECT - Paralel fara req (daca nu e nevoie de tranzactie)
+await Promise.all([
+  payload.update({ id: post1.id, ... }),
+  payload.update({ id: post2.id, ... }),
+  payload.update({ id: post3.id, ... }),
+])
+```
+
+**Cand ai nevoie de `req`:**
+- Crearea documentelor principale (posts, pages)
+- Operatii care trebuie sa fie atomice
+
+**Cand NU ai nevoie de `req`:**
+- Update-uri secundare (related posts, metadata)
+- Operatii care pot esua independent
+
+---
+
+## De Adaugat in Sesiuni Viitoare
 
 - [ ] Live Preview configuration
 - [ ] Form Builder best practices
 - [ ] SEO plugin configuration
 - [ ] Image optimization (WebP/AVIF)
 - [ ] Deployment checklist
+- [x] Seed assets repo pattern
+- [x] Diacritics best practices
+- [x] MongoDB transaction conflicts

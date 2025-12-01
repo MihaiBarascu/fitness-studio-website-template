@@ -32,11 +32,10 @@ export function postToCardProps(
   options?: {
     cardType?: CardType
     showCategories?: boolean
+    showAuthor?: boolean
+    showDate?: boolean
   },
 ): UniversalCardProps {
-  const isService = post.postType === 'service'
-  const defaultCardType = isService ? 'service' : 'blog'
-
   // Get categories as strings
   const categories = post.categories
     ?.map((cat) => {
@@ -47,36 +46,43 @@ export function postToCardProps(
     })
     .filter(Boolean)
 
+  // Get first category for badge
+  const firstCategory = categories?.[0]
+
+  // Get author name
+  const authorName =
+    options?.showAuthor !== false && post.populatedAuthors?.length
+      ? post.populatedAuthors[0]?.name
+      : undefined
+
+  // Format published date
+  const publishedDate =
+    options?.showDate !== false && post.publishedAt
+      ? new Date(post.publishedAt).toLocaleDateString('ro-RO', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : undefined
+
   // Get image
   const image =
     post.heroImage || (post.meta?.image as Media | string | null) || null
 
-  // Get price for service posts
-  const price =
-    isService && post.serviceDetails?.price
-      ? {
-          amount: parseFloat(post.serviceDetails.price),
-          period: null,
-          oldPrice: null,
-        }
-      : undefined
-
   return {
-    cardType: options?.cardType || defaultCardType,
+    cardType: options?.cardType || 'blog',
     title: post.title,
-    subtitle: isService ? post.serviceDetails?.trainer : undefined,
+    subtitle: authorName,
     description: post.meta?.description || undefined,
     image,
-    price,
+    badge: firstCategory,
+    badgeColor: 'primary',
     meta: {
       categories: options?.showCategories ? categories : undefined,
-      duration: post.serviceDetails?.duration
-        ? parseInt(post.serviceDetails.duration)
-        : undefined,
-      schedule: post.serviceDetails?.schedule || undefined,
+      schedule: publishedDate,
     },
     cta: {
-      label: 'Vezi detalii',
+      label: 'Citește articolul',
       href: `/posts/${post.slug}`,
       newTab: false,
     },
@@ -279,10 +285,12 @@ export function collectionToCardProps(
   }
 }
 
-export default {
+const cardAdapters = {
   postToCardProps,
   antrenorToCardProps,
   claseToCardProps,
   abonamenteToCardProps,
   collectionToCardProps,
 }
+
+export default cardAdapters

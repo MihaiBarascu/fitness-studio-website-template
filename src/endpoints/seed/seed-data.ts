@@ -61,29 +61,73 @@ export const themeData = {
 
 // Base URL pentru imagini (GitHub raw sau alt CDN)
 export const IMAGE_BASE_URL =
-  'https://raw.githubusercontent.com/MihaiBarascu/template-2/main/src/endpoints/seed/'
+  'https://raw.githubusercontent.com/MihaiBarascu/seed-assets/master/transilvania-fitness/'
 
-// Imagini pentru posts/blog
+// Imagini pentru posts/blog si general use (trainers, classes, etc.)
 export const blogImages = [
   {
-    filename: 'image-post1.webp',
-    alt: 'Post image 1',
+    filename: 'trainers/trainer-male-1.jpg',
+    alt: 'Antrenor masculin fitness - antrenament forta',
   },
   {
-    filename: 'image-post2.webp',
-    alt: 'Post image 2',
+    filename: 'trainers/trainer-female-1.jpg',
+    alt: 'Antrenoare fitness feminina - kettlebell workout',
   },
   {
-    filename: 'image-post3.webp',
-    alt: 'Post image 3',
+    filename: 'trainers/trainer-male-2.jpg',
+    alt: 'Antrenor fitness - CrossFit si functional',
+  },
+  {
+    filename: 'classes/yoga-class-1.jpg',
+    alt: 'Clasa de yoga in grup - stretching si relaxare',
+  },
+  {
+    filename: 'classes/crossfit-battle-ropes.jpg',
+    alt: 'Antrenament CrossFit cu battle ropes',
+  },
+  {
+    filename: 'classes/boxing-class.jpg',
+    alt: 'Clasa de box fitness - antrenament cardio intens',
+  },
+  {
+    filename: 'classes/pilates-class.jpg',
+    alt: 'Clasa de Pilates - core training si flexibilitate',
+  },
+  {
+    filename: 'classes/spinning-class.jpg',
+    alt: 'Clasa de spinning - cardio pe bicicleta',
   },
 ]
 
 // Imagini Hero
 export const heroImages = [
   {
-    filename: 'image-hero1.webp',
-    alt: 'Hero image',
+    filename: 'hero/gym-barbell-dark.jpg',
+    alt: 'Sala de fitness moderna - echipament profesional',
+  },
+  {
+    filename: 'hero/hero-gym-1.jpg',
+    alt: 'Interior sala fitness - zona de greutati',
+  },
+  {
+    filename: 'hero/hero-gym-2.jpg',
+    alt: 'Echipamente fitness profesionale',
+  },
+]
+
+// Imagini pentru Blog Posts
+export const blogPostImages = [
+  {
+    filename: 'blog/workout-tips.jpg',
+    alt: 'Antrenament fitness cu bara - exercitii de baza',
+  },
+  {
+    filename: 'blog/fitness-nutrition.jpg',
+    alt: 'Alimentatie sanatoasa pentru fitness - oua avocado legume',
+  },
+  {
+    filename: 'blog/healthy-lifestyle.jpg',
+    alt: 'Antrenament de dimineata - abdominale cu lumina naturala',
   },
 ]
 
@@ -91,7 +135,7 @@ export const heroImages = [
 // CATEGORII BLOG
 // =============================================================================
 
-export const blogCategories = ['Classes', 'News', 'Finance', 'Design', 'Software', 'Engineering']
+export const blogCategories = ['Fitness', 'Nutritie', 'Lifestyle', 'Antrenamente', 'Sanatate']
 
 // =============================================================================
 // TEAM MEMBERS - Echipa
@@ -104,7 +148,7 @@ export const teamMembersData = [
     role: 'Antrenor Principal & Fondator',
     excerpt:
       'Cu peste 15 ani de experiență în fitness și culturism, Alexandru este sufletul sălii noastre.',
-    imageIndex: 0, // Index in blogImages array
+    imageIndex: 0, // trainer-male-1.jpg
     experience: 15,
     specializations: [{ name: 'Culturism' }, { name: 'Powerlifting' }, { name: 'Nutriție Sportivă' }],
     socialMedia: {
@@ -122,7 +166,7 @@ export const teamMembersData = [
     slug: 'maria-ionescu',
     role: 'Instructor Fitness de Grup',
     excerpt: 'Specializată în aerobic, Pilates și Yoga, Maria aduce energie pozitivă în fiecare clasă.',
-    imageIndex: 1,
+    imageIndex: 1, // trainer-female-1.jpg
     experience: 8,
     specializations: [{ name: 'Yoga' }, { name: 'Pilates' }, { name: 'Aerobic' }],
     socialMedia: {
@@ -140,7 +184,7 @@ export const teamMembersData = [
     slug: 'mihai-radu',
     role: 'Antrenor CrossFit',
     excerpt: 'Campion național de CrossFit, Mihai te va împinge să-ți depășești limitele.',
-    imageIndex: 2,
+    imageIndex: 2, // trainer-male-2.jpg
     experience: 10,
     specializations: [{ name: 'CrossFit' }, { name: 'Functional Training' }, { name: 'HIIT' }],
     socialMedia: {
@@ -162,7 +206,7 @@ export const classesData = [
   {
     title: 'Yoga pentru Începători',
     slug: 'yoga-incepatori',
-    imageIndex: 0,
+    imageIndex: 3, // yoga-class-1.jpg
     description:
       'Clasă de yoga perfectă pentru cei care vor să înceapă o practică de yoga relaxantă și revigorantă.',
     category: 'mind-body' as const,
@@ -195,7 +239,7 @@ export const classesData = [
   {
     title: 'CrossFit Intensiv',
     slug: 'crossfit-intensiv',
-    imageIndex: 1,
+    imageIndex: 4, // crossfit-battle-ropes.jpg
     description: 'Antrenament de înaltă intensitate pentru cei care vor rezultate rapide și vizibile.',
     category: 'strength' as const,
     difficulty: 'advanced' as const,
@@ -223,7 +267,7 @@ export const classesData = [
   {
     title: 'Pilates Core',
     slug: 'pilates-core',
-    imageIndex: 2,
+    imageIndex: 6, // pilates-class.jpg
     description:
       'Consolidează-ți centrul corpului și îmbunătățește-ți postura cu exerciții Pilates.',
     category: 'flexibility' as const,
@@ -474,6 +518,7 @@ export const headerNavigation = {
   // Link-uri navigare principală
   mainLinks: [
     { label: 'Acasă', url: '/', type: 'custom' as const },
+    { label: 'Postări', url: '/posts', type: 'custom' as const },
     { label: 'Abonamente', url: '/abonamente', type: 'custom' as const },
     { label: 'Antrenori', url: '/antrenori', type: 'custom' as const },
     { label: 'Contact', url: '/contact', type: 'custom' as const },

@@ -474,3 +474,137 @@ await Promise.all([
 - **No JavaScript bundle** for footer logic
 - **Server-side rendering** for SEO
 - **Cached global data** via `getCachedGlobal`
+
+---
+
+# 📸 Image Assets & Seeder Lessons Learned
+
+## 🎯 Centralized Seed Assets Repository
+
+### Architecture
+
+Created a **public GitHub repository** for seed images that can be reused across all projects:
+
+```
+Repository: https://github.com/MihaiBarascu/seed-assets
+Structure:
+seed-assets/
+├── transilvania-fitness/
+│   ├── trainers/
+│   │   ├── trainer-male-1.jpg
+│   │   ├── trainer-female-1.jpg
+│   │   └── trainer-male-2.jpg
+│   ├── classes/
+│   │   ├── yoga-class-1.jpg
+│   │   ├── crossfit-battle-ropes.jpg
+│   │   ├── boxing-class.jpg
+│   │   ├── pilates-class.jpg
+│   │   └── spinning-class.jpg
+│   ├── hero/
+│   │   ├── gym-barbell-dark.jpg
+│   │   ├── hero-gym-1.jpg
+│   │   └── hero-gym-2.jpg
+│   └── blog/
+├── [other-projects]/
+└── README.md
+```
+
+### URL Pattern
+
+```typescript
+// seed-data.ts
+export const IMAGE_BASE_URL =
+  'https://raw.githubusercontent.com/MihaiBarascu/seed-assets/main/transilvania-fitness/'
+
+// Usage
+blogImages = [
+  { filename: 'trainers/trainer-male-1.jpg', alt: '...' },
+]
+// Result: https://raw.githubusercontent.com/MihaiBarascu/seed-assets/main/transilvania-fitness/trainers/trainer-male-1.jpg
+```
+
+### Benefits
+
+- **Reusable** - Same images can be used across multiple projects
+- **Version controlled** - Track changes to seed assets
+- **Private project compatible** - Main repo can stay private while assets are public
+- **Fast seeding** - GitHub raw URLs are reliable for fetching
+
+## ⚠️ IMPORTANT: Avoid Diacritics in Logic Fields
+
+### Rule
+
+**NEVER use Romanian diacritics (ă, â, î, ș, ț) in fields that affect logic or operations.**
+
+### Safe for diacritics (content only):
+- Rich text content / descriptions
+- Long-form text displayed to users
+- Blog post body content
+
+### AVOID diacritics in:
+- `alt` text for images (affects matching/lookup)
+- `labels` in Payload collections
+- `slug` fields
+- `filename` values
+- Any field used for filtering/searching/matching
+
+### Example
+
+```typescript
+// ❌ BAD - diacritics in alt (can cause matching issues)
+{ alt: 'Clasă de yoga în grup - stretching și relaxare' }
+
+// ✅ GOOD - no diacritics in operational fields
+{ alt: 'Clasa de yoga in grup - stretching si relaxare' }
+
+// ❌ BAD - diacritics in labels
+labels: { singular: 'Postare', plural: 'Postări' }
+
+// ✅ GOOD - safe labels
+labels: { singular: 'Postare', plural: 'Postari' }
+```
+
+## 📥 Unsplash Image Download Process
+
+### Finding Free Images
+
+1. Navigate to Unsplash search with Playwright MCP
+2. Click on image to see details
+3. **Check for "Download free" button** (not Unsplash+ premium)
+4. Get photo ID from URL: `unsplash.com/photos/[PHOTO_ID]`
+
+### Download Command
+
+```bash
+curl -L -o [local-path].jpg "https://unsplash.com/photos/[PHOTO_ID]/download?force=true"
+```
+
+### Verify Download
+
+```bash
+ls -la [path]  # Check file size - should be 1-5MB for quality images
+```
+
+## 🔄 Seeder Image Index Pattern
+
+When using `imageIndex` in seed data, reference the array position:
+
+```typescript
+// blogImages array indices:
+// 0: trainers/trainer-male-1.jpg
+// 1: trainers/trainer-female-1.jpg
+// 2: trainers/trainer-male-2.jpg
+// 3: classes/yoga-class-1.jpg
+// 4: classes/crossfit-battle-ropes.jpg
+// ...
+
+teamMembersData = [
+  { title: 'Alexandru', imageIndex: 0 },  // trainer-male-1.jpg
+  { title: 'Maria', imageIndex: 1 },      // trainer-female-1.jpg
+]
+
+classesData = [
+  { title: 'Yoga', imageIndex: 3 },       // yoga-class-1.jpg
+  { title: 'CrossFit', imageIndex: 4 },   // crossfit-battle-ropes.jpg
+]
+```

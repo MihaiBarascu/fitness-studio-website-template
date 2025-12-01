@@ -210,7 +210,7 @@ const PricingCard: React.FC<InternalCardProps> = ({
   highlighted,
   cta,
   className,
-  index,
+  index: _index,
 }) => {
   return (
     <article
@@ -337,7 +337,7 @@ const ProductCard: React.FC<InternalCardProps> = ({
   highlighted,
   cta,
   className,
-  index,
+  index: _index,
 }) => {
   return (
     <article
@@ -427,7 +427,7 @@ const TeamCard: React.FC<InternalCardProps> = ({
   badgeColor,
   cta,
   className,
-  index,
+  index: _index,
 }) => {
   const CardWrapper = cta ? Link : 'div'
   const wrapperProps = cta ? { href: cta.href, target: cta.newTab ? '_blank' : undefined } : {}
@@ -502,7 +502,7 @@ const ClassCard: React.FC<InternalCardProps> = ({
   cta,
   meta,
   className,
-  index,
+  index: _index,
 }) => {
   const CardWrapper = cta ? Link : 'div'
   const wrapperProps = cta ? { href: cta.href, target: cta.newTab ? '_blank' : undefined } : {}
@@ -609,7 +609,7 @@ const OfferCard: React.FC<InternalCardProps> = ({
   highlighted,
   cta,
   className,
-  index,
+  index: _index,
 }) => {
   return (
     <article
@@ -687,7 +687,7 @@ const BlogCard: React.FC<InternalCardProps> = ({
   cta,
   meta,
   className,
-  index,
+  index: _index,
 }) => {
   const CardWrapper = cta ? Link : 'div'
   const wrapperProps = cta ? { href: cta.href, target: cta.newTab ? '_blank' : undefined } : {}
@@ -775,7 +775,7 @@ const ServiceCard: React.FC<InternalCardProps> = ({
   cta,
   meta,
   className,
-  index,
+  index: _index,
 }) => {
   const CardWrapper = cta ? Link : 'div'
   const wrapperProps = cta ? { href: cta.href, target: cta.newTab ? '_blank' : undefined } : {}
@@ -873,7 +873,7 @@ const SimpleCard: React.FC<InternalCardProps> = ({
   badgeColor,
   cta,
   className,
-  index,
+  index: _index,
 }) => {
   return (
     <article

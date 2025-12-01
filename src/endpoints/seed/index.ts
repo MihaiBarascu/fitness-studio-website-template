@@ -6,9 +6,6 @@ import { contact as contactPageData } from './contact-page'
 import { comandaForm as comandaFormData } from './comanda-form'
 import { comanda as comandaPageData } from './comanda-page'
 import { home } from './home'
-import { serviceCardio } from './service-cardio'
-import { serviceCrossfit } from './service-crossfit'
-import { serviceYoga } from './service-yoga'
 
 // Import centralized seed data - MODIFY THIS FILE FOR EACH CLIENT
 import {
@@ -17,6 +14,7 @@ import {
   IMAGE_BASE_URL,
   blogImages,
   heroImages,
+  blogPostImages,
   blogCategories,
   teamMembersData,
   classesData,
@@ -191,12 +189,14 @@ export const seed = async ({
       .map((collection) => payload.db.deleteVersions({ collection, req, where: {} })),
   )
 
-  payload.logger.info(`— Seeding demo author...`)
+  payload.logger.info(`— Seeding blog author...`)
 
+  // Delete previous blog author if exists
+  const firstTrainerEmail = teamMembersData[0].contact.email
   await payload.delete({
     collection: 'users',
     depth: 0,
-    where: { email: { equals: 'demo-author@example.com' } },
+    where: { email: { equals: firstTrainerEmail } },
   })
 
   payload.logger.info(`— Seeding media (reusing existing files from R2)...`)
@@ -212,7 +212,7 @@ export const seed = async ({
     blogImageDocs.push(result.media)
     trackMediaResult(result)
   }
-  const [image1Doc, image2Doc, image3Doc] = blogImageDocs
+  const [image1Doc] = blogImageDocs // Fallback image for team/classes/abonaments
 
   // Hero images - from seed-data.ts
   payload.logger.info(`— Seeding hero images...`)
@@ -228,13 +228,29 @@ export const seed = async ({
   }
   const [imageHomeDoc] = heroImageDocs
 
-  // Create demo author and categories
-  const [demoAuthor, categoriesCreated] = await Promise.all([
+  // Blog post specific images - from seed-data.ts
+  payload.logger.info(`— Seeding blog post images...`)
+  const blogPostImageDocs: Media[] = []
+  for (const img of blogPostImages) {
+    const result = await getOrCreateMediaWithStats(payload, req, {
+      filename: img.filename,
+      url: IMAGE_BASE_URL + img.filename,
+      alt: img.alt,
+    })
+    blogPostImageDocs.push(result.media)
+    trackMediaResult(result)
+  }
+  // Blog post images: [0] workout-tips, [1] fitness-nutrition, [2] healthy-lifestyle
+  const [blogImage1Doc, blogImage2Doc, blogImage3Doc] = blogPostImageDocs
+
+  // Create blog author (first team member) and categories
+  const firstTrainer = teamMembersData[0]
+  const [blogAuthor, categoriesCreated] = await Promise.all([
     payload.create({
       collection: 'users',
       data: {
-        name: 'Demo Author',
-        email: 'demo-author@example.com',
+        name: firstTrainer.title,
+        email: firstTrainer.contact.email,
         password: 'password',
       },
     }),
@@ -330,68 +346,110 @@ export const seed = async ({
     }
   }
 
-  payload.logger.info(`— Seeding service posts...`)
+  payload.logger.info(`— Seeding blog posts...`)
 
-  // Create service posts
-  const yogaData = serviceYoga({ heroImage: image1Doc, blockImage: image2Doc, author: demoAuthor })
-  yogaData.categories = classesCategory ? [classesCategory.id] : []
+  // Blog posts data - simple fitness articles
+  // Images: blogImage1Doc=workout-tips, blogImage2Doc=fitness-nutrition, blogImage3Doc=healthy-lifestyle
+  const blogPostsData = [
+    {
+      title: '5 Exercitii Esentiale pentru Incepatori',
+      slug: '5-exercitii-esentiale-incepatori',
+      heroImage: blogImage1Doc, // workout-tips.jpg - deadlift image
+      content: createLexicalContent([
+        'Daca esti la inceput de drum in lumea fitness-ului, aceste 5 exercitii te vor ajuta sa construiesti o baza solida.',
+        'Genuflexiunile (squats) sunt fundamentale pentru dezvoltarea picioarelor si a musculaturii core. Incepe cu greutatea corpului si progreseaza treptat.',
+        'Flotarile (push-ups) lucreaza pieptul, umerii si tricepsul. Poti incepe cu varianta de pe genunchi daca cea clasica este prea dificila.',
+        'Plank-ul este excelent pentru core si stabilitate. Tine pozitia cat poti, crescand durata progresiv.',
+        'Fandările (lunges) imbunatatesc echilibrul si forta picioarelor. Alterneaza picioarele pentru un antrenament complet.',
+        'Rowing-ul cu banda elastica sau gantere dezvolta spatele si imbunatateste postura. Concentreaza-te pe contractia muschilor spatelui.',
+      ]),
+      excerpt: 'Descopera cele mai importante exercitii pentru a incepe antrenamentul fitness.',
+    },
+    {
+      title: 'Alimentatia pentru Crestere Musculara',
+      slug: 'alimentatia-crestere-musculara',
+      heroImage: blogImage2Doc, // fitness-nutrition.jpg - healthy food plate
+      content: createLexicalContent([
+        'Cresterea musculara depinde in mare masura de alimentatie. Iata ce trebuie sa stii pentru rezultate optime.',
+        'Proteinele sunt esentiale - consuma 1.6-2.2g per kg corp zilnic. Surse bune: pui, peste, oua, lactate, leguminoase.',
+        'Carbohidratii furnizeaza energie pentru antrenamente intense. Alege surse complexe: orez, ovaz, cartofi dulci, paine integrala.',
+        'Grasimile sanatoase sustin productia de hormoni. Include avocado, nuci, seminte si ulei de masline in dieta.',
+        'Hidratarea este cruciala - bea cel putin 2-3 litri de apa zilnic, mai mult in zilele de antrenament.',
+        'Mesele pre si post-antrenament sunt importante. Mananca carbohidrati si proteine inainte, proteine si carbohidrati dupa.',
+      ]),
+      excerpt: 'Ghid complet despre nutritie pentru cei care vor sa construiasca masa musculara.',
+    },
+    {
+      title: 'Beneficiile Antrenamentului de Dimineata',
+      slug: 'beneficiile-antrenamentului-dimineata',
+      heroImage: blogImage3Doc, // healthy-lifestyle.jpg - morning workout
+      content: createLexicalContent([
+        'Antrenamentul de dimineata ofera numeroase beneficii pentru sanatate si productivitate zilnica.',
+        'Metabolismul accelerat - exercitiile matinale activeaza metabolismul pentru tot restul zilei, ajutand la arderea caloriilor.',
+        'Energie crescuta - desi pare contraintuitiv, miscarea de dimineata iti ofera mai multa energie decat cafeaua.',
+        'Consistenta mai buna - dimineata ai mai putine scuze si distractii. Sala e mai putin aglomerata.',
+        'Somn imbunatatit - antrenamentul matinal regleaza ritmul circadian si imbunatateste calitatea somnului.',
+        'Stare de spirit pozitiva - endorfinele eliberate te pregatesc pentru o zi productiva si cu dispozitie buna.',
+        'Incepe gradual - chiar si 20 de minute de exercitii usoare dimineata pot face diferenta.',
+      ]),
+      excerpt: 'De ce ar trebui sa te antrenezi dimineata si cum sa incepi aceasta rutina.',
+    },
+  ]
 
-  const yogaDoc = await payload.create({
-    collection: 'posts',
-    depth: 0,
-    context: { disableRevalidate: true },
-    data: yogaData,
-  })
-  stats.postsCreated++
+  const createdPosts = []
+  for (const postData of blogPostsData) {
+    try {
+      const post = await payload.create({
+        collection: 'posts',
+        req, // IMPORTANT: Pass req for transaction atomicity
+        depth: 0,
+        context: { disableRevalidate: true },
+        data: {
+          title: postData.title,
+          slug: postData.slug,
+          heroImage: postData.heroImage.id,
+          content: postData.content,
+          authors: [blogAuthor.id],
+          categories: classesCategory ? [classesCategory.id] : [],
+          _status: 'published',
+          publishedAt: new Date().toISOString(),
+          meta: {
+            title: postData.title,
+            description: postData.excerpt,
+            image: postData.heroImage.id,
+          },
+        },
+      })
+      createdPosts.push(post)
+      stats.postsCreated++
+      payload.logger.info(`  ✓ Created blog post: ${postData.title}`)
+    } catch (error) {
+      stats.errors.push(`Blog post ${postData.title}: ${error}`)
+      payload.logger.error(`  ✗ Failed to create blog post ${postData.title}: ${error}`)
+    }
+  }
 
-  const crossfitData = serviceCrossfit({
-    heroImage: image2Doc,
-    blockImage: image3Doc,
-    author: demoAuthor,
-  })
-  crossfitData.categories = classesCategory ? [classesCategory.id] : []
-
-  const crossfitDoc = await payload.create({
-    collection: 'posts',
-    depth: 0,
-    context: { disableRevalidate: true },
-    data: crossfitData,
-  })
-  stats.postsCreated++
-
-  const cardioData = serviceCardio({
-    heroImage: image3Doc,
-    blockImage: image1Doc,
-    author: demoAuthor,
-  })
-  cardioData.categories = classesCategory ? [classesCategory.id] : []
-
-  const cardioDoc = await payload.create({
-    collection: 'posts',
-    depth: 0,
-    context: { disableRevalidate: true },
-    data: cardioData,
-  })
-  stats.postsCreated++
-
-  // Update posts with related posts
-  await Promise.all([
-    payload.update({
-      id: yogaDoc.id,
+  // Update posts with related posts (sequential to avoid MongoDB transaction conflicts)
+  if (createdPosts.length >= 3) {
+    await payload.update({
+      id: createdPosts[0].id,
       collection: 'posts',
-      data: { relatedPosts: [crossfitDoc.id, cardioDoc.id] },
-    }),
-    payload.update({
-      id: crossfitDoc.id,
+      context: { disableRevalidate: true },
+      data: { relatedPosts: [createdPosts[1].id, createdPosts[2].id] },
+    })
+    await payload.update({
+      id: createdPosts[1].id,
       collection: 'posts',
-      data: { relatedPosts: [yogaDoc.id, cardioDoc.id] },
-    }),
-    payload.update({
-      id: cardioDoc.id,
+      context: { disableRevalidate: true },
+      data: { relatedPosts: [createdPosts[0].id, createdPosts[2].id] },
+    })
+    await payload.update({
+      id: createdPosts[2].id,
       collection: 'posts',
-      data: { relatedPosts: [yogaDoc.id, crossfitDoc.id] },
-    }),
-  ])
+      context: { disableRevalidate: true },
+      data: { relatedPosts: [createdPosts[0].id, createdPosts[1].id] },
+    })
+  }
 
   payload.logger.info(`— Seeding contact form...`)
 
