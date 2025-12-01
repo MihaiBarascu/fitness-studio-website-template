@@ -1,8 +1,8 @@
 'use client'
 import type { FormFieldBlock, Form as FormType } from '@payloadcms/plugin-form-builder/types'
 
-import { useRouter } from 'next/navigation'
-import React, { useCallback, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import React, { useCallback, useState, useMemo, Suspense } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import RichText from '@/components/RichText'
 import { Button } from '@/components/ui/button'
@@ -26,7 +26,56 @@ export type FormBlockType = {
   spacing?: SpacingConfig | null
 }
 
-export const FormBlock: React.FC<
+/**
+ * Construiește valorile implicite pentru câmpurile formularului
+ * Extrage defaultValue din fiecare câmp (dacă există)
+ */
+const buildFieldDefaults = (
+  formFields: FormFieldBlock[] | undefined
+): Record<string, string> => {
+  const defaults: Record<string, string> = {}
+  if (!formFields) return defaults
+
+  formFields.forEach((field) => {
+    if ('name' in field && field.name) {
+      // Extrage defaultValue din câmp sau string gol
+      if ('defaultValue' in field && field.defaultValue) {
+        defaults[field.name] = String(field.defaultValue)
+      } else {
+        defaults[field.name] = ''
+      }
+    }
+  })
+
+  return defaults
+}
+
+/**
+ * URL Prefill: Citește parametrii din URL și returnează default values pentru form
+ * Funcționează automat - dacă URL are ?name=John&email=test@mail.com,
+ * câmpurile cu acele names vor fi pre-completate
+ */
+const getUrlDefaults = (
+  searchParams: URLSearchParams,
+  formFields: FormFieldBlock[] | undefined
+): Record<string, string> => {
+  const defaults: Record<string, string> = {}
+  if (!formFields) return defaults
+
+  formFields.forEach((field) => {
+    if ('name' in field && field.name) {
+      const urlValue = searchParams.get(field.name)
+      if (urlValue) {
+        defaults[field.name] = urlValue
+      }
+    }
+  })
+
+  return defaults
+}
+
+// Inner component that uses useSearchParams (needs Suspense boundary)
+const FormBlockInner: React.FC<
   {
     id?: string
   } & FormBlockType
@@ -52,8 +101,24 @@ export const FormBlock: React.FC<
     spacing?.marginBottom ? marginBottomMap[spacing.marginBottom] : '',
   ].filter(Boolean).join(' ')
 
+  // URL Prefill: citește parametrii din URL și aplică-i ca default values
+  const searchParams = useSearchParams()
+
+  // Construiește default values: mai întâi din câmpuri, apoi override cu URL params
+  const fieldDefaults = useMemo(
+    () => buildFieldDefaults(formFromProps?.fields),
+    [formFromProps?.fields]
+  )
+  const urlDefaults = useMemo(
+    () => getUrlDefaults(searchParams, formFromProps?.fields),
+    [searchParams, formFromProps?.fields]
+  )
+
   const formMethods = useForm({
-    defaultValues: formFromProps.fields,
+    defaultValues: {
+      ...fieldDefaults,  // Valorile implicite din definițiile câmpurilor
+      ...urlDefaults,    // Override cu valorile din URL (dacă există)
+    },
   })
   const {
     control,
@@ -68,20 +133,15 @@ export const FormBlock: React.FC<
   const router = useRouter()
 
   const onSubmit = useCallback(
-    (data: FormFieldBlock[]) => {
-      let loadingTimerID: ReturnType<typeof setTimeout>
+    (data: Record<string, string>) => {
       const submitForm = async () => {
         setError(undefined)
+        setIsLoading(true) // Loading imediat la click
 
         const dataToSend = Object.entries(data).map(([name, value]) => ({
           field: name,
           value,
         }))
-
-        // delay loading indicator by 1s
-        loadingTimerID = setTimeout(() => {
-          setIsLoading(true)
-        }, 1000)
 
         try {
           const req = await fetch(`${getClientSideURL()}/api/form-submissions`, {
@@ -96,8 +156,6 @@ export const FormBlock: React.FC<
           })
 
           const res = await req.json()
-
-          clearTimeout(loadingTimerID)
 
           if (req.status >= 400) {
             setIsLoading(false)
@@ -181,8 +239,24 @@ export const FormBlock: React.FC<
                   })}
               </div>
 
-              <Button form={formID} type="submit" variant="default">
-                {submitButtonLabel}
+              <Button
+                form={formID}
+                type="submit"
+                variant="default"
+                disabled={isLoading}
+                className="min-w-[140px]"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Se trimite...
+                  </span>
+                ) : (
+                  submitButtonLabel
+                )}
               </Button>
             </form>
           )}
@@ -190,5 +264,32 @@ export const FormBlock: React.FC<
       </div>
       </div>
     </Wrapper>
+  )
+}
+
+// Fallback component for Suspense
+const FormBlockFallback: React.FC = () => (
+  <div className="container">
+    <div className="lg:max-w-[48rem] mx-auto">
+      <div className="theme-form-style p-4 lg:p-6 border border-border rounded-[0.8rem] animate-pulse">
+        <div className="h-10 bg-muted rounded mb-4" />
+        <div className="h-10 bg-muted rounded mb-4" />
+        <div className="h-10 bg-muted rounded mb-4" />
+        <div className="h-10 bg-muted rounded w-32" />
+      </div>
+    </div>
+  </div>
+)
+
+// Main export wrapped in Suspense (required for useSearchParams in Next.js 15)
+export const FormBlock: React.FC<
+  {
+    id?: string
+  } & FormBlockType
+> = (props) => {
+  return (
+    <Suspense fallback={<FormBlockFallback />}>
+      <FormBlockInner {...props} />
+    </Suspense>
   )
 }

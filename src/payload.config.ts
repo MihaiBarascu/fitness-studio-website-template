@@ -1,5 +1,6 @@
 import { s3Storage } from '@payloadcms/storage-s3'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { resendAdapter } from '@payloadcms/email-resend'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -95,6 +96,13 @@ export default buildConfig({
     }),
   ],
   secret: process.env.PAYLOAD_SECRET,
+  // Email configuration (Resend)
+  // NOTĂ: Pentru producție, verifică domeniul în Resend și schimbă la @transilvaniafitness.ro
+  email: resendAdapter({
+    defaultFromAddress: 'onboarding@resend.dev', // Email de test Resend (funcționează fără verificare domeniu)
+    defaultFromName: 'Transilvania Fitness',
+    apiKey: process.env.RESEND_API_KEY || '',
+  }),
   sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

@@ -3,6 +3,8 @@ import type { Media } from '@/payload-types'
 
 import { contactForm as contactFormData } from './contact-form'
 import { contact as contactPageData } from './contact-page'
+import { comandaForm as comandaFormData } from './comanda-form'
+import { comanda as comandaPageData } from './comanda-page'
 import { home } from './home'
 import { serviceCardio } from './service-cardio'
 import { serviceCrossfit } from './service-crossfit'
@@ -399,6 +401,14 @@ export const seed = async ({
     data: contactFormData,
   })
 
+  payload.logger.info(`— Seeding comanda form...`)
+
+  const comandaForm = await payload.create({
+    collection: 'forms',
+    depth: 0,
+    data: comandaFormData,
+  })
+
   payload.logger.info(`— Seeding abonamente...`)
 
   // Create abonamente from seed-data.ts
@@ -444,8 +454,13 @@ export const seed = async ({
       depth: 0,
       data: contactPageData({ contactForm }),
     }),
+    payload.create({
+      collection: 'pages',
+      depth: 0,
+      data: comandaPageData({ comandaForm }),
+    }),
   ])
-  stats.pagesCreated = 2
+  stats.pagesCreated = 3
 
   payload.logger.info(`— Seeding globals...`)
 
