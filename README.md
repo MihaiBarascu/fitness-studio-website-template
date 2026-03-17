@@ -1,4 +1,4 @@
-# Gymso Fitness — Payload Website Template
+# fitness-studio-website-template
 
 A fully functional **Payload CMS website template** based on the **Gymso Fitness** HTML theme. Built with Next.js App Router, Tailwind CSS, and shadcn/ui, this template is designed for gyms, fitness studios, and wellness businesses.
 
