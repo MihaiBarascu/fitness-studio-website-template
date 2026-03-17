@@ -255,7 +255,7 @@ export const ContactInfoClient: React.FC<ContactInfoClientProps> = ({
     )
   }
 
-  // Default style (Gymso-like)
+  // Default style
   return (
     <div
       ref={ref}

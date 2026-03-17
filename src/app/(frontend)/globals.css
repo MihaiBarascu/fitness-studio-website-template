@@ -278,7 +278,7 @@
 
 @layer components {
   /* =============================================
-     BUTTON STYLES - Gymso Original
+     BUTTON STYLES - Original Template
      ============================================= */
   .custom-btn {
     background: transparent !important;
@@ -489,7 +489,7 @@
     opacity: 0.85;
   }
 
-  /* Gymso original about-working-hours */
+  /* Original template about-working-hours */
   .about-working-hours {
     border-left: 2px solid;
     padding-left: 3.5rem;

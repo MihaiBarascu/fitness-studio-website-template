@@ -49,7 +49,7 @@ export const CallToActionBlock: React.FC<CTABlockProps> = ({
     .join(' ')
 
   if (style === 'theme-feature') {
-    // Gymso original: ml-lg-auto mr-lg-5 col-lg-5 | mr-lg-auto col-lg-4
+    // Original template: ml-lg-auto mr-lg-5 col-lg-5 | mr-lg-auto col-lg-4
     // Uses auto margins to center content with 3rem gap between columns
     return (
       <section className={`py-20 bg-theme-dark ${spacingClass}`}>
