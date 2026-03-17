@@ -1,4 +1,4 @@
-# Gymso Fitness → Payload Website Template
+# fitness-studio-website-template — Payload CMS
 
 ## 🤖 Payload Skill
 
@@ -14,21 +14,13 @@
 
 ## 🎯 Project Overview
 
-We are converting the HTML template **Gymso Fitness** into a fully functional **Payload Website Template**, ensuring that **all component styling matches the original template as closely as possible**. We will **not add unnecessary blocks**; only essential ones for Gymso.
+We are building a fully functional **Payload Website Template** for fitness studios, ensuring that **all component styling matches the original design as closely as possible**. We will **not add unnecessary blocks**; only essential ones for this template.
 
-**The first and most important step** is to **modify the Tailwind CSS configuration and gloval.css** to replicate the template globally. This ensures that every component inherits the correct look and feel from the original template. Only after the global styling is correctly set, we continue with asset replacement and essential blocks.
+**The first and most important step** is to **modify the Tailwind CSS configuration and globals.css** to replicate the template globally. This ensures that every component inherits the correct look and feel. Only after the global styling is correctly set, we continue with asset replacement and essential blocks.
 
 We will also integrate **ShadCN/UI** components wherever possible (buttons, modals, forms, layout) to accelerate development, improve accessibility, and maintain clean code **without affecting the visual design** of the template.
 
 ## 📍 Exact Locations
-
-### Source Template (HTML)
-
-- Folder: `/home/evr/Desktop/website-templates/html templates/2119_gymso_fitness/`
-- Main file: `index.html`
-- Custom CSS: `css/tooplate-gymso-style.css`
-- Images: `images/`
-- JS: `js/`
 
 ### Destination Project (Payload)
 
@@ -36,7 +28,7 @@ We will also integrate **ShadCN/UI** components wherever possible (buttons, moda
 - Base: Official Payload Website Template with Next.js + Tailwind
 - Reference clean Payload template: `/home/evr/Desktop/website-templates/clean-payload-webiste-tempalte/` (always refer to this to avoid breaking core logic)
 
-## 🏗️ Original Template Sections
+## 🏗️ Template Sections
 
 - Header/Navigation
 - Hero Section
@@ -48,21 +40,19 @@ We will also integrate **ShadCN/UI** components wherever possible (buttons, moda
 - Footer
 - Membership Modal Form
 
-**Technologies:** Bootstrap 4, Font Awesome, AOS, jQuery, Custom CSS
-
 ## 🎨 Styling Approach
 
 **Key Principle:** Each Payload component will **inherit global styles** and replicate the original template's look exactly.
 
 - **Global Tailwind configuration first**: colors, typography, spacing, keyframes, and animations must match the template
-- Convert AOS animations into Tailwind/Framer Motion animations
+- Convert animations into Tailwind/Framer Motion
 - Ensure responsive design matches the original template
 - All components (Blocks, Globals) use Tailwind classes defined globally to maintain visual consistency
 - Integrate ShadCN/UI components where possible **without altering visual fidelity**
 
 ## 🔒 Preserve Payload & Next.js Core Logic
 
-**Critical Rule:** Do **NOT** modify Payload’s core logic or Next.js routing/system.
+**Critical Rule:** Do **NOT** modify Payload's core logic or Next.js routing/system.
 
 ### 🔒 Always Keep Intact
 
@@ -75,10 +65,10 @@ We will also integrate **ShadCN/UI** components wherever possible (buttons, moda
 
 ### 🔑 Safe Changes
 
-- Update Tailwind CSS configuration and global styles first to match Gymso template styling (colors, typography, spacing, animations)
+- Update Tailwind CSS configuration and global styles first to match the template styling (colors, typography, spacing, animations)
 - Apply global modular styles so all components inherit correct look
-- Replace default logo, images, and assets in the Payload project with **Gymso template assets** before adding blocks
-- Add **only essential blocks** for Gymso (e.g., HeroBlock, FeaturesBlock, ClassesBlock, ScheduleBlock, TeamBlock, ContactBlock) after styling and asset replacement
+- Replace default logo, images, and assets in the Payload project with template assets before adding blocks
+- Add **only essential blocks** (e.g., HeroBlock, FeaturesBlock, ClassesBlock, ScheduleBlock, TeamBlock, ContactBlock) after styling and asset replacement
 - Use ShadCN/UI components to speed up coding and ensure accessibility **without affecting the template design**
 
 ### ❌ Do Not Touch
@@ -90,31 +80,31 @@ We will also integrate **ShadCN/UI** components wherever possible (buttons, moda
 
 ## 🧹 Remove Unnecessary Content / Seed Data
 
-**Principle:** Remove only if you have replacement content from the original Gymso template. Do not remove anything that will leave missing content in the site.
+**Principle:** Remove only if you have replacement content ready. Do not remove anything that will leave missing content in the site.
 
 ### ✅ Keep
 
 - Payload structure (collections, globals, blocks, interfaces, routing)
 - Functional blocks: Header, Footer, Hero, Content, Media, Call To Action, Archive
-- Only remove demo/seed data **after preparing Gymso content replacements**
+- Only remove demo/seed data **after preparing replacement content**
 
 ### ❌ Remove
 
-- Demo posts/pages/images/texts that will be replaced by Gymso content
-- Placeholder navigation/menu items not needed in Gymso
+- Demo posts/pages/images/texts that will be replaced by template content
+- Placeholder navigation/menu items not needed in the final design
 - Unused CSS, JS, Bootstrap/jQuery files
-- Font Awesome / AOS libraries (replace with Tailwind + Framer Motion + Heroicons/ShadCN) only after Gymso replacements are ready
+- Font Awesome / AOS libraries (replace with Tailwind + Framer Motion + Heroicons/ShadCN) only after replacements are ready
 
 ## 🔧 Adapting Header and Footer
 
-### Gymso Header
+### Header
 
 - Logo, Navigation, Social icons
 - Mobile responsive using Tailwind breakpoints + React state
 - Modify `src/payload/globals/Header.ts` to add `socialLinks`
-- **Replace logo with Gymso logo and relevant images before adding any blocks**
+- **Replace logo and relevant images before adding any blocks**
 
-### Gymso Footer
+### Footer
 
 - Copyright text
 - Contact: email + phone
@@ -124,54 +114,54 @@ We will also integrate **ShadCN/UI** components wherever possible (buttons, moda
 
 ## 🎯 Correct Workflow (Updated)
 
-1. **Modify Tailwind CSS configuration and global styles first** to match Gymso template styling globally.
-2. **Replace logo, images, and assets** in the Payload project with Gymso template content.
+1. **Modify Tailwind CSS configuration and global styles first** to match the template styling globally.
+2. **Replace logo, images, and assets** in the Payload project with template content.
 3. Verify all components inherit correct styles via global classes.
 4. Integrate ShadCN/UI components where possible **without altering template design**.
-5. Only after global styling and assets are correctly set, add **essential Gymso-specific blocks**.
+5. Only after global styling and assets are correctly set, add **essential template-specific blocks**.
 6. Homepage becomes a Pages collection entry with blocks layout.
-7. Gymso blocks added to available blocks array.
+7. Blocks added to available blocks array.
 8. HTML template converted to JSX with props from blocks.
-9. Apply global modular styling to ensure all components look like the original Gymso template.
+9. Apply global modular styling to ensure all components match the original design.
 
 ## 🎯 Optimized Workflow (Learned from Implementation)
 
 ### Phase 1: Global Foundation Setup ✅
 
-1. **Analyze original Gymso CSS** (`css/tooplate-gymso-style.css`) to extract:
+1. **Analyze original CSS** to extract:
    - Colors (--primary-color: #f13a11, --dark-color: #171819, etc.)
    - Typography (Plain font family, font sizes, weights)
    - Spacing (section padding: 7rem, border-radius values)
 
 2. **Configure Tailwind globally** (`tailwind.config.mjs`):
-   - Add Gymso color palette as utility classes (`gymso-primary`, `gymso-dark`, etc.)
-   - Define Gymso font sizes (`gymso-h1: 48px`, `gymso-h2: 36px`, etc.)
-   - Set Gymso spacing and border radius values
+   - Add color palette as utility classes (`studio-primary`, `studio-dark`, etc.)
+   - Define font sizes (`studio-h1: 48px`, `studio-h2: 36px`, etc.)
+   - Set spacing and border radius values
 
 3. **Setup global CSS** (`src/app/(frontend)/globals.css`):
    - Add font-face declarations for Plain font family
    - Define base typography styles (h1-h6, p, a, strong)
-   - Create utility classes (`.gymso-section`, `.gymso-bg-overlay`, `.gymso-btn`)
+   - Create utility classes (`.studio-section`, `.studio-bg-overlay`, `.studio-btn`)
 
 ### Phase 2: Asset Management ✅
 
-4. **Copy Gymso assets** to appropriate Payload locations:
+4. **Copy template assets** to appropriate Payload locations:
    - Fonts: `/src/app/(frontend)/fonts/` (Plain-Regular, Plain-Light, Plain-Bold)
    - Images: `/public/images/` (hero-bg.jpg, class images, team images)
 
-5. **Replace seed images** with Gymso images:
-   - Copy Gymso images to `/src/endpoints/seed/`
+5. **Replace seed images** with template images:
+   - Copy images to `/src/endpoints/seed/`
    - Update GitHub URLs in seeder to point to your repository
    - Update alt texts in image definition files
 
 ### Phase 3: Component Adaptation (Not Creation) ✅
 
 6. **Adapt existing components instead of creating new ones**:
-   - **High Impact Hero**: Modified to support Gymso overlay, button styles, typography
-   - **CallToAction Block**: Extended with 'gymso-feature' style for dark background layout
+   - **High Impact Hero**: Modified to support overlay, button styles, typography
+   - **CallToAction Block**: Extended with `theme-feature` style for dark background layout
    - Keep all existing Payload logic intact
 
-7. **Update seeders with Gymso content**:
+7. **Update seeders with template content**:
    - Hero text: subtitle + main title + button labels
    - CTA content: membership info + working hours
    - Meta descriptions and titles
@@ -179,13 +169,13 @@ We will also integrate **ShadCN/UI** components wherever possible (buttons, moda
 ### Phase 4: CMS Pages Approach (New Strategy)
 
 8. **Create separate CMS pages instead of hardcoding sections**:
-   - **Classes Page**: Create a dedicated page in CMS for fitness classes with Archive block showing services/classes
+   - **Classes Page**: Dedicated page in CMS with Archive block showing services/classes
    - **Schedule Page**: Separate page with schedule information
    - **About Page**: Use existing page functionality with content blocks
    - **Contact Page**: Dedicated contact page with form block
    - This approach allows content editors to manage sections independently
    - Can optionally display these as Archive blocks on homepage if needed
-   - Avoids hardcoding design - everything is managed through CMS
+   - Avoids hardcoding design — everything is managed through CMS
 
 ### Key Principles Learned:
 
@@ -294,9 +284,8 @@ Convert any HTML template into a fully functional Payload Website Template while
 ### What We Built
 
 - **Complete dynamic Footer system** for Payload CMS
-- **Elyssium Gym inspired** design with Tailwind CSS
 - **5 content types** for maximum flexibility
-- **Romanian content seeder** with compliance integration
+- **Multilingual content seeder** with compliance integration
 
 ### 🔧 Technical Architecture
 
@@ -316,7 +305,6 @@ companyInfo: {
 columns: [{
   title: string,
   contentType: 'links' | 'text' | 'contact' | 'schedule' | 'custom',
-  // Conditional fields based on contentType
   links?: Link[],           // CMSLink array
   textItems?: TextItem[],   // With optional icons
   contactItems?: Contact[], // Phone, email, address, WhatsApp
@@ -390,17 +378,13 @@ bg-gradient-to-b from-transilvania-dark to-black
 **Problem:**
 
 ```tsx
-{
-  bottomBar.legalLinks.length - 1
-} // ❌ legalLinks can be null
+{bottomBar.legalLinks.length - 1} // ❌ legalLinks can be null
 ```
 
 **Solution:**
 
 ```tsx
-{
-  bottomBar.legalLinks && i < bottomBar.legalLinks.length - 1
-}
+{bottomBar.legalLinks && i < bottomBar.legalLinks.length - 1}
 ```
 
 #### 3. Seeder Clearing Logic
@@ -437,9 +421,8 @@ await Promise.all([
 
 #### Content Strategy
 
-- **Romanian language** throughout
 - **Transilvania Fitness branding** (consistent with project)
-- **Real-world footer structure** (inspired by Elyssium Gym)
+- **Real-world footer structure**
 - **Compliance integration** (ANPC, SOL logos when available)
 
 #### Asset Management
